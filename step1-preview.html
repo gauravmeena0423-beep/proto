@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Drishti — Design System Preview · Step 1</title>
+  <meta name="description" content="Design system and component library for Drishti SCRB Crime Intelligence Assistant" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <style>
+    .preview-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: var(--space-10) var(--space-6);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-12);
+    }
+
+    .preview-hero {
+      text-align: center;
+      padding: var(--space-16) var(--space-8);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .preview-hero::before {
+      content: '';
+      position: absolute;
+      inset: -50%;
+      background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(79,110,247,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .logo-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--color-accent-dim), var(--color-accent-primary));
+      border-radius: var(--radius-2xl);
+      font-size: 40px;
+      margin-bottom: var(--space-6);
+      box-shadow: var(--shadow-accent), var(--shadow-xl);
+      position: relative;
+    }
+
+    .logo-mark::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: calc(var(--radius-2xl) + 2px);
+      background: linear-gradient(135deg, var(--color-accent-primary), transparent 60%);
+      z-index: -1;
+    }
+
+    .preview-section {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-5);
+    }
+
+    .preview-section-label {
+      font-size: var(--text-xs);
+      font-weight: var(--weight-bold);
+      color: var(--color-accent-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .preview-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--color-border-subtle);
+    }
+
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: var(--space-3);
+    }
+
+    .color-swatch {
+      height: 64px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: flex-end;
+      padding: var(--space-2) var(--space-3);
+      font-size: var(--text-xs);
+      font-family: var(--font-mono);
+      font-weight: var(--weight-medium);
+    }
+
+    .type-specimen {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .steps-done {
+      display: flex;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+
+    .step-pill {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-full);
+      font-size: var(--text-xs);
+      font-weight: var(--weight-semibold);
+    }
+
+    .step-pill.done {
+      background: var(--color-success-dim);
+      color: var(--color-success);
+      border: 1px solid rgba(34,201,122,0.25);
+    }
+
+    .step-pill.pending {
+      background: var(--color-bg-elevated);
+      color: var(--color-text-muted);
+      border: 1px solid var(--color-border-subtle);
+    }
+
+    .step-pill.current {
+      background: var(--color-accent-glow);
+      color: var(--color-accent-light);
+      border: 1px solid var(--color-border-strong);
+    }
+
+    .anim-demo {
+      display: flex;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .anim-box {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--color-accent-dim), var(--color-accent-primary));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 20px;
+    }
+
+    /* Scanline effect */
+    .scanline-demo {
+      position: relative;
+      height: 80px;
+      background: var(--color-bg-elevated);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--color-border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+    }
+
+    .scanline-demo::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(79,110,247,0.6), transparent);
+      animation: scanline 2.5s linear infinite;
+    }
+
+    /* Gradient text */
+    .gradient-text {
+      background: linear-gradient(135deg, var(--color-accent-light), #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .font-demo-kn { font-family: var(--font-kannada); }
+    .font-demo-hi { font-family: var(--font-hindi); }
+
+    footer {
+      text-align: center;
+      padding: var(--space-8);
+      color: var(--color-text-muted);
+      font-size: var(--text-xs);
+      border-top: 1px solid var(--color-border-subtle);
+    }
+  </style>
+</head>
+<body>
+
+<div class="preview-wrap">
+
+  <!-- ── HERO ──────────────────────────────────────────────── -->
+  <div class="preview-hero animate-fadeUp">
+    <div class="logo-mark animate-scaleIn">👁️</div>
+    <h1 class="gradient-text">Drishti</h1>
+    <p style="font-size:var(--text-lg); color:var(--color-text-muted); margin-top:var(--space-2);">
+      ದೃಷ್ಟಿ &nbsp;·&nbsp; दृष्टि &nbsp;·&nbsp; Vision
+    </p>
+    <p style="font-size:var(--text-sm); color:var(--color-text-muted); margin-top:var(--space-2);">
+      Karnataka SCRB Crime Intelligence Assistant &nbsp;—&nbsp; Design System Preview
+    </p>
+
+    <div class="flex items-center justify-center gap-3 mt-6 flex-wrap">
+      <span class="badge badge-fact">● Fact</span>
+      <span class="badge badge-inference">● Inference</span>
+      <span class="badge badge-prediction">● Prediction</span>
+      <span class="badge badge-alert">● Alert</span>
+      <span class="clearance-badge clearance-L3">L3 Clearance</span>
+    </div>
+  </div>
+
+  <!-- ── BUILD STEPS STATUS ─────────────────────────────────── -->
+  <div class="preview-section animate-fadeUp delay-1">
+    <div class="preview-section-label">Build Progress</div>
+    <div class="steps-done">
+      <span class="step-pill done">✓ Step 1 — Design System</span>
+      <span class="step-pill pending">○ Step 2 — Login</span>
+      <span class="step-pill pending">○ Step 3 — Dashboard</span>
+      <span class="step-pill pending">○ Step 4 — Chat</span>
+      <span class="step-pill pending">○ Step 5 — Network Graph</span>
+      <span class="step-pill pending">○ Step 6 — Hotspot Map</span>
+      <span class="step-pill pending">○ Step 7 — Trends & AI</span>
+      <span class="step-pill pending">○ Step 8 — Audit Trail</span>
+      <span class="step-pill pending">○ Step 9 — PDF Export</span>
+    </div>
+  </div>
+
+  <!-- ── COLOR PALETTE ──────────────────────────────────────── -->
+  <div class="preview-section animate-fadeUp delay-2">
+    <div class="preview-section-label">Color Palette</div>
+    <div class="color-grid">
+      <div class="color-swatch" style="background:var(--color-bg-base); border:1px solid var(--color-border-subtle);color:var(--color-text-muted)">bg-base<br/>#080d1a</div>
+      <div class="color-swatch" style="background:var(--color-bg-elevated); border:1px solid var(--color-border-subtle);color:var(--color-text-muted)">bg-elevated<br/>#111c34</div>
+      <div class="color-swatch" style="background:var(--color-accent-primary);color:#fff">accent<br/>#4f6ef7</div>
+      <div class="color-swatch" style="background:var(--color-accent-light);color:#080d1a">accent-light<br/>#7b93ff</div>
+      <div class="color-swatch" style="background:var(--color-fact);color:#080d1a">fact<br/>#22c97a</div>
+      <div class="color-swatch" style="background:var(--color-inference);color:#080d1a">inference<br/>#f5a623</div>
+      <div class="color-swatch" style="background:var(--color-prediction);color:#080d1a">prediction<br/>#a78bfa</div>
+      <div class="color-swatch" style="background:var(--color-danger);color:#fff">danger<br/>#f25c5c</div>
+      <div class="color-swatch" style="background:var(--color-success);color:#080d1a">success<br/>#22c97a</div>
+      <div class="color-swatch" style="background:var(--color-warning);color:#080d1a">warning<br/>#f5a623</div>
+    </div>
+  </div>
+
+  <!-- ── TYPOGRAPHY ─────────────────────────────────────────── -->
+  <div class="preview-section animate-fadeUp delay-3">
+    <div class="preview-section-label">Typography — 3 Scripts</div>
+    <div class="glass-card type-specimen">
+      <div>
+        <div class="text-xs text-muted mb-1">English · Inter</div>
+        <div style="font-size:var(--text-3xl); font-weight:700; line-height:1.2;">Crime Intelligence</div>
+        <div style="font-size:var(--text-base); color:var(--color-text-secondary);">47 FIRs in Bengaluru South, tagged chain-snatching, Apr–Jun 2026</div>
+      </div>
+      <div class="divider"></div>
+      <div class="font-demo-kn">
+        <div class="text-xs text-muted mb-1">Kannada · Noto Sans Kannada</div>
+        <div style="font-size:var(--text-3xl); font-weight:700; line-height:1.2;">ಅಪರಾಧ ಗುಪ್ತಚರ</div>
+        <div style="font-size:var(--text-base); color:var(--color-text-secondary);">ಬೆಂಗಳೂರು ದಕ್ಷಿಣದಲ್ಲಿ ೪೭ ಎಫ್‌ಐಆರ್‌ಗಳು ನೋಂದಾಯಿಸಲ್ಪಟ್ಟಿವೆ</div>
+      </div>
+      <div class="divider"></div>
+      <div class="font-demo-hi">
+        <div class="text-xs text-muted mb-1">Hindi · Noto Sans Devanagari</div>
+        <div style="font-size:var(--text-3xl); font-weight:700; line-height:1.2;">अपराध आसूचना</div>
+        <div style="font-size:var(--text-base); color:var(--color-text-secondary);">बेंगलुरु दक्षिण में ४७ FIR दर्ज किए गए, अप्रैल–जून २०२६</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BUTTONS ─────────────────────────────────────────────── -->
+  <div class="preview-section animate-fadeUp delay-4">
+    <div class="preview-section-label">Buttons</div>
+    <div class="glass-card flex gap-3 flex-wrap items-center">
+      <button class="btn btn-primary">🔍 Search Records</button>
+      <button class="btn btn-secondary">Export PDF</button>
+      <button class="btn btn-ghost">View Audit</button>
+      <button class="btn btn-danger">Escalate</button>
+      <button class="btn btn-success">Mark Verified</button>
+      <button class="btn btn-primary sm">Quick Search</button>
+      <button class="btn btn-secondary lg">Generate Report</button>
+      <button class="btn btn-icon btn-secondary" data-tooltip="Network Graph">🕸️</button>
+      <button class="btn btn-icon btn-primary" data-tooltip="Voice Input">🎙️</button>
+      <button class="btn btn-primary" disabled>Disabled</button>
+    </div>
+  </div>
+
+  <!-- ── BADGES ─────────────────────────────────────────────── -->
+  <div class="preview-section animate-fadeUp delay-5">
+    <div class="preview-section-label">Badges & Chips</div>
+    <div class="glass-card flex flex-wrap gap-3 items-center">
+      <span class="badge badge-fact">Fact</span>
+      <span class="badge badge-inference">Inference</span>
+      <span class="badge badge-prediction">Prediction</span>
+      <div class="divider-vertical"></div>
+      <span class="badge badge-active">Active</span>
+      <span class="badge badge-pending">Pending</span>
+      <span class="badge badge-closed">Closed</span>
+      <span class="badge badge-alert">Alert</span>
+      <div class="divider-vertical"></div>
+      <span class="badge badge-admin">Admin</span>
+      <span class="badge badge-sp">SP</span>
+      <span class="badge badge-dsp">DSP</span>
+      <span class="badge badge-inspector">Inspector</span>
+      <span class="badge badge-analyst">Analyst</span>
+      <div class="divider-vertical"></div>
+      <span class="chip">FIR/114/2025</span>
+      <span class="chip">FIR/2291/2026</span>
+      <span class="chip">BNS §309</span>
+    </div>
+  </div>
+
+  <!-- ── CLEARANCE BADGES ───────────────────────────────────── -->
+  <div class="preview-section">
+    <div class="preview-section-label">Clearance Levels</div>
+    <div class="glass-card flex gap-4 flex-wrap items-center">
+      <span class="clearance-badge clearance-L1">🔓 L1 — Station Level</span>
+      <span class="clearance-badge clearance-L2">🔒 L2 — Circle Level</span>
+      <span class="clearance-badge clearance-L3">🔐 L3 — District Level</span>
+      <span class="clearance-badge clearance-L4">🛡️ L4 — State Level</span>
+    </div>
+  </div>
+
+  <!-- ── ALERT BANNERS ──────────────────────────────────────── -->
+  <div class="preview-section">
+    <div class="preview-section-label">Alert Banners</div>
+    <div class="flex flex-col gap-3">
+      <div class="alert alert-info">
+        <span class="alert-icon">ℹ️</span>
+        <div>
+          <div class="alert-title">Data Notice</div>
+          Based on 342 incidents, Jan–Jun 2026. Confidence: 65%.
+        </div>
+      </div>
+      <div class="lead-banner">
+        ⚠️ &nbsp;This is a lead — verify against source records before acting on any real-world decision.
+      </div>
+      <div class="alert alert-danger">
+        <span class="alert-icon">🔒</span>
+        <div>
+          <div class="alert-title">Access Restricted</div>
+          Survivor identity in sexual-offence case is protected by law. Session not flagged as authorized exception.
+        </div>
+      </div>
+      <div class="alert alert-success">
+        <span class="alert-icon">✅</span>
+        <div>
+          <div class="alert-title">Audit Logged</div>
+          Query recorded: user, data accessed, timestamp, and response hash.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── METRIC CARDS ───────────────────────────────────────── -->
+  <div class="preview-section">
+    <div class="preview-section-label">KPI Metric Cards</div>
+    <div class="grid-4">
+      <div class="metric-card">
+        <div class="metric-icon">📋</div>
+        <div class="metric-label">FIRs Today</div>
+        <div class="metric-value text-primary">142</div>
+        <div class="metric-change up">↑ 12% vs yesterday</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">🔥</div>
+        <div class="metric-label">Active Hotspots</div>
+        <div class="metric-value text-primary">7</div>
+        <div class="metric-change down">↓ 2 resolved</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">⏳</div>
+        <div class="metric-label">Pending Chargesheets</div>
+        <div class="metric-value text-primary">38</div>
+        <div class="metric-change flat">→ Unchanged</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">🕸️</div>
+        <div class="metric-label">Network Links</div>
+        <div class="metric-value text-primary">214</div>
+        <div class="metric-change up">↑ 5 new</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FORM ELEMENTS ──────────────────────────────────────── -->
+  <div class="preview-section">
+    <div class="preview-section-label">Form Elements</div>
+    <div class="glass-card grid-2">
+      <div class="form-group">
+        <label class="label">Search FIRs</label>
+        <div class="input-group">
+          <span class="input-icon">🔍</span>
+          <input type="text" class="input" placeholder="Case ID, accused name, location…" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="label">Jurisdiction</label>
+        <select class="input select">
+          <option>Bengaluru Urban</option>
+          <option>Bengaluru Rural</option>
+          <option>Mysuru</option>
+          <option>Dharwad</option>
+          <option>Ballari</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="label">Language</label>
+        <div class="lang-selector">
+          <button class="lang-btn active" id="lang-en">EN</button>
+          <button class="lang-btn" id="lang-kn">ಕನ್ನಡ</button>
+          <button class="lang-btn" id="lang-hi">हिंदी</button>
+          <button class="lang-btn" id="lang-auto">Auto</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="label">Include Juveniles</label>
+        <label class="toggle">
+          <input type="checkbox" />
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <span class="text-secondary">Requires L4 clearance</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CONFIDENCE BARS ────────────────────────────────────── -->
+  <div class="preview-section">
+    <div class="preview-section-label">Confidence Bands (Prediction Output)</div>
+    <div class="glass-card flex flex-col gap-4">
+      <div>
+        <div class="flex justify-between mb-2">
+          <span class="text-sm text-secondary">Jayanagar Beat — Hotspot Probability</span>
+          <span class="badge badge-prediction">78% Confidence</span>
+        </div>
+        <div class="confidence-bar">
+          <span class="confidence-label">78%</span>
+          <div class="confidence-track"><div class="confidence-fill high" style="width:78%"></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="flex justify-between mb-2">
+          <span class="text-sm text-secondary">JP Nagar — Chain Snatching Risk</span>
+          <span class="badge badge-inference">55% Moderate</span>
+        </div>
+        <div class="confidence-bar">
+          <span class="confidence-label">55%</span>
+          <div class="confidence-track"><div class="confidence-fill medium" style="width:55%"></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="flex justify-between mb-2">
+          <span class="text-sm text-secondary">Koramangala — Burglary Forecast</span>
+          <span class="badge badge-alert">30% — Low Data</span>
+        </div>
+        <div class="confidence-bar">
+          <span class="confidence-label">30%</span>
+          <div class="confidence-track"><div class="confidence-fill low" style="width:30%"></div></div>
+        </div>
+      </div>
+      <div class="alert alert-warning" style="margin-top:var(--space-2)">
+        <span class="alert-icon">⚠️</span>
+        <div>Predictive output is for patrol planning only. Not grounds for search, detention, or naming a suspect.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DATA TABLE ─────────────────────────────────────────── -->
+  <div class="preview-section">
+    <div class="preview-section-label">Case Table</div>
+    <div class="glass-card" style="padding:0; overflow:hidden">
+      <div class="table-wrapper" style="border:none;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Case ID</th>
+              <th>Station</th>
+              <th>Offence</th>
+              <th>Status</th>
+              <th>IO Assigned</th>
+              <th>Source Type</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-primary"><span class="chip">FIR/114/2025</span></td>
+              <td>Yelahanka</td>
+              <td>Chain Snatching</td>
+              <td><span class="badge badge-active">Active</span></td>
+              <td>SI Ramesh Kumar</td>
+              <td><span class="badge badge-fact">Fact</span></td>
+              <td class="mono text-muted">12 Jun 2025</td>
+            </tr>
+            <tr>
+              <td class="text-primary"><span class="chip">FIR/2291/2026</span></td>
+              <td>Jayanagar</td>
+              <td>Burglary</td>
+              <td><span class="badge badge-pending">Pending CS</span></td>
+              <td>PSI Asha Patel</td>
+              <td><span class="badge badge-inference">Inference</span></td>
+              <td class="mono text-muted">03 Jul 2026</td>
+            </tr>
+            <tr>
+              <td class="text-primary"><span class="chip">FIR/0087/2026</span></td>
+              <td>KR Puram</td>
+              <td>Robbery</td>
+              <td><span class="badge badge-closed">Chargesheeted</span></td>
+              <td>SI Vijay Nair</td>
+              <td><span class="badge badge-fact">Fact</span></td>
+              <td class="mono text-muted">19 Jan 2026</td>
+            </tr>
+            <tr>
+              <td class="text-primary">
+                <span class="redacted">PROTECTED — §72 BNS</span>
+              </td>
+              <td class="text-muted">—</td>
+              <td class="text-muted">—</td>
+              <td><span class="badge badge-info no-dot">Restricted</span></td>
+              <td class="text-muted">—</td>
+              <td><span class="badge badge-alert">Restricted</span></td>
+              <td class="mono text-muted">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ANIMATION DEMOS ────────────────────────────────────── -->
+  <div class="preview-section">
+    <div class="preview-section-label">Micro-Animations</div>
+    <div class="glass-card flex flex-col gap-5">
+      <div class="anim-demo">
+        <div class="anim-box animate-pulse">🔥</div>
+        <span class="text-sm text-secondary">Pulse — Active hotspot</span>
+        <div class="anim-box animate-spin" style="font-size:16px">⟳</div>
+        <span class="text-sm text-secondary">Spin — Loading</span>
+        <div class="anim-box animate-glow">⚡</div>
+        <span class="text-sm text-secondary">Glow pulse — Alert</span>
+        <div class="status-dot active"></div>
+        <span class="text-sm text-secondary">Live status dot</span>
+      </div>
+      <div class="scanline-demo">
+        🔍 Scanning Karnataka SCRB database…
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TIMELINE ───────────────────────────────────────────── -->
+  <div class="preview-section">
+    <div class="preview-section-label">Case Chronology Timeline</div>
+    <div class="glass-card">
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-time">2026-07-03 · 21:14</div>
+          <div class="timeline-content">FIR/2291/2026 registered at Jayanagar PS — Burglary, BNS §305. <span class="chip">FIR/2291/2026</span></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">2026-07-04 · 09:30</div>
+          <div class="timeline-content">Accused Rajan B. (named) taken into remand. <span class="badge badge-fact no-dot">Fact</span></div>
+        </div>
+        <div class="timeline-item alert">
+          <div class="timeline-time">2026-07-06 · 14:45</div>
+          <div class="timeline-content">Network link detected: co-accused in FIR/114/2025 — <strong>same MO</strong>. <span class="badge badge-inference no-dot">Inference</span></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">2026-07-09 · 13:05</div>
+          <div class="timeline-content">Chargesheet filing due in 3 days. IO: PSI Asha Patel.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── AUDIT MARKER ───────────────────────────────────────── -->
+  <div class="preview-section">
+    <div class="preview-section-label">Explainability & Audit Marker</div>
+    <div class="glass-card flex flex-col gap-4">
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <div class="flex gap-3 flex-wrap">
+          <span class="badge badge-fact">Fact — FIR/114/2025, FIR/2291/2026</span>
+          <span class="badge badge-inference">Inference — 5 cases, shared MO</span>
+        </div>
+        <div class="audit-marker">audit-log-20260709-1305</div>
+      </div>
+      <div class="lead-banner">
+        ⚠️ &nbsp;This is a lead — verify against source records before acting.
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <button class="btn btn-ghost sm">📋 Show sources</button>
+        <button class="btn btn-ghost sm">🔍 How sure are you?</button>
+        <button class="btn btn-ghost sm">📄 Export PDF</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Drishti SCRB · Design System v1.0 · Step 1 of 9 Complete · AI-assisted output — verify before use in any proceeding
+</footer>
+
+<script>
+  // ── Language selector demo
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // ── Toggle demo
+  document.querySelectorAll('.toggle input').forEach(toggle => {
+    toggle.addEventListener('change', () => {
+      // just for visual demo
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Drishti — Intelligence Dashboard</title>
+  <meta name="description" content="Karnataka SCRB Crime Intelligence Dashboard — FIRs, hotspots, network analysis, trends" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ══════════════════════════════════════════════════════════
+       SIDEBAR
+  ══════════════════════════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-header">
+      <a href="dashboard.html" class="sidebar-logo">
+        <div class="sidebar-logo-icon">👁️</div>
+        <span class="sidebar-logo-text">Drishti</span>
+      </a>
+      <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">◀</button>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Main navigation">
+
+      <div class="nav-section-label">Case Filing</div>
+      <a href="fir-entry.html" class="nav-item" data-page="fir-entry.html" data-tooltip="File New e-FIR">
+        <span class="nav-icon">📝</span>
+        <span class="nav-label">File New e-FIR</span>
+      </a>
+
+      <div class="nav-section-label">Intelligence</div>
+
+      <a href="dashboard.html" class="nav-item active" data-page="dashboard.html" data-tooltip="Dashboard">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+
+      <a href="chat.html" class="nav-item" data-page="chat.html" data-tooltip="Chat Assistant">
+        <span class="nav-icon">💬</span>
+        <span class="nav-label">Chat Assistant</span>
+        <span class="nav-badge" id="nb-chat">3</span>
+      </a>
+
+      <a href="network.html" class="nav-item" data-page="network.html" data-tooltip="Network Graph">
+        <span class="nav-icon">🕸️</span>
+        <span class="nav-label">Network Graph</span>
+      </a>
+
+      <div class="nav-section-label">Analysis</div>
+
+      <a href="hotspot.html" class="nav-item" data-page="hotspot.html" data-tooltip="Hotspot Map">
+        <span class="nav-icon">🔥</span>
+        <span class="nav-label">Hotspot Map</span>
+        <span class="nav-badge">7</span>
+      </a>
+
+      <a href="trends.html" class="nav-item" data-page="trends.html" data-tooltip="Trends & Forecast">
+        <span class="nav-icon">📈</span>
+        <span class="nav-label">Trends & Forecast</span>
+      </a>
+
+      <div class="nav-section-label">Records</div>
+
+      <a href="audit.html" class="nav-item" data-page="audit.html" data-tooltip="Audit Trail">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Audit Trail</span>
+      </a>
+
+      <a href="export.html" class="nav-item" data-page="export.html" data-tooltip="PDF Export">
+        <span class="nav-icon">📄</span>
+        <span class="nav-label">PDF Export</span>
+      </a>
+
+    </nav>
+
+    <!-- Sidebar footer: user -->
+    <div class="sidebar-footer">
+      <div class="sidebar-user" id="sidebar-user-btn">
+        <div class="avatar" id="user-avatar">U</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="user-name">Officer</div>
+          <div id="user-role-label" class="badge badge-inspector" style="margin-top:4px">Inspector</div>
+        </div>
+      </div>
+
+      <!-- Expanded user menu -->
+      <div style="margin-top:var(--space-2); display:flex; flex-direction:column; gap:2px;" id="user-menu">
+        <div class="flex items-center justify-between px-2 py-1" style="opacity:0; transition:opacity 0.2s;" id="jx-row">
+          <span class="text-xs text-muted">📍</span>
+          <span class="text-xs text-muted truncate" id="user-jurisdiction">—</span>
+        </div>
+        <div class="flex items-center justify-between px-2 py-1" style="opacity:0; transition:opacity 0.2s;" id="clr-row">
+          <span class="text-xs text-muted">🔒</span>
+          <span id="user-clearance" class="clearance-badge clearance-L1" style="font-size:10px">L1</span>
+        </div>
+
+        <div class="divider" style="margin:var(--space-2) 0;"></div>
+
+        <!-- Language switcher -->
+        <div class="lang-selector" style="width:100%; opacity:0; transition:opacity 0.2s;" id="lang-row">
+          <button class="lang-btn active" data-lang="en">EN</button>
+          <button class="lang-btn" data-lang="kn">ಕನ್ನಡ</button>
+          <button class="lang-btn" data-lang="hi">हिंदी</button>
+        </div>
+
+        <button class="btn btn-ghost sm" data-action="logout" style="width:100%; margin-top:var(--space-1); opacity:0; transition:opacity 0.2s;" id="logout-btn">
+          🚪 Sign Out
+        </button>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ══════════════════════════════════════════════════════════
+       MAIN AREA
+  ══════════════════════════════════════════════════════════ -->
+  <div class="main-area">
+
+    <!-- ── TOPBAR ── -->
+    <header class="topbar">
+      <span class="topbar-title" id="topbar-title">Intelligence Dashboard</span>
+
+      <!-- Search -->
+      <div class="topbar-search" style="position:relative;">
+        <span class="topbar-search-icon">🔍</span>
+        <input
+          type="search"
+          id="global-search"
+          placeholder="Search FIRs, accused, locations…"
+          aria-label="Global search"
+        />
+      </div>
+
+      <div class="topbar-actions">
+
+        <!-- Lang toggle (topbar duplicate for uncollapsed state) -->
+        <div class="lang-selector" id="topbar-lang" style="display:none;">
+          <button class="lang-btn" data-lang="en">EN</button>
+          <button class="lang-btn" data-lang="kn">ಕನ್ನಡ</button>
+          <button class="lang-btn" data-lang="hi">हिंदी</button>
+        </div>
+
+        <!-- Notification bell -->
+        <div class="topbar-notif">
+          <button class="btn btn-icon btn-secondary" id="notif-btn" aria-label="Notifications">🔔</button>
+          <div class="notif-dot" id="notif-dot"></div>
+        </div>
+
+        <!-- File New e-FIR button -->
+        <button class="btn btn-primary sm" onclick="window.location.href='fir-entry.html'" style="font-weight:700">
+          📝 + New e-FIR
+        </button>
+
+        <!-- PDF Export quick -->
+        <button class="btn btn-secondary sm" id="quick-export-btn">
+          📄 Export
+        </button>
+
+        <!-- User pill -->
+        <div class="topbar-user" id="topbar-user-pill">
+          <div class="avatar sm" id="topbar-avatar">U</div>
+          <span class="topbar-user-name" id="topbar-name">Officer</span>
+          <span style="color:var(--color-text-muted);font-size:10px">▾</span>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- ── CONTENT ── -->
+    <main class="content-area" id="main-content">
+
+      <!-- Lead / disclaimer banner -->
+      <div class="dash-lead-banner" id="lead-banner">
+        <span>⚠️</span>
+        <span id="lead-text">All outputs are decision-support leads — verify against source records before any real-world action.</span>
+      </div>
+
+      <!-- Dashboard header -->
+      <div class="dash-header animate-fadeUp">
+        <div>
+          <div class="dash-greeting" id="dash-greeting">Good afternoon, Officer</div>
+          <h1 class="dash-title" id="dash-heading">Intelligence Dashboard</h1>
+          <div class="dash-meta">
+            <span id="dash-role-badge" class="badge badge-inspector">Inspector</span>
+            <span id="dash-jx" class="text-sm text-muted">📍 —</span>
+            <span id="dash-clearance" class="clearance-badge clearance-L1">L1</span>
+            <span class="text-xs text-muted mono" id="dash-time">—</span>
+          </div>
+        </div>
+        <div class="dash-actions">
+          <button class="btn btn-secondary" onclick="window.location.href='chat.html'">
+            💬 Open Chat
+          </button>
+          <button class="btn btn-primary" onclick="window.location.href='hotspot.html'">
+            🔥 View Hotspots
+          </button>
+        </div>
+      </div>
+
+      <!-- ── METRIC CARDS ── -->
+      <div class="metrics-row animate-fadeUp delay-1">
+
+        <div class="metric-card" id="metric-firs">
+          <div class="metric-icon">📋</div>
+          <div class="metric-label" id="ml-firs">FIRs Today</div>
+          <div class="metric-value" id="mv-firs">
+            <span class="skeleton" style="width:60px;height:36px;display:inline-block;border-radius:8px;"></span>
+          </div>
+          <div class="metric-change up" id="mc-firs">—</div>
+          <div style="margin-top:var(--space-3)">
+            <div class="spark-bars" id="spark-firs"></div>
+          </div>
+        </div>
+
+        <div class="metric-card" id="metric-hotspots">
+          <div class="metric-icon">🔥</div>
+          <div class="metric-label" id="ml-hs">Active Hotspots</div>
+          <div class="metric-value" id="mv-hs">
+            <span class="skeleton" style="width:40px;height:36px;display:inline-block;border-radius:8px;"></span>
+          </div>
+          <div class="metric-change up" id="mc-hs">—</div>
+          <div style="margin-top:var(--space-3)">
+            <div class="spark-bars" id="spark-hs"></div>
+          </div>
+        </div>
+
+        <div class="metric-card" id="metric-pending">
+          <div class="metric-icon">⏳</div>
+          <div class="metric-label" id="ml-cs">Pending Chargesheets</div>
+          <div class="metric-value" id="mv-cs">
+            <span class="skeleton" style="width:40px;height:36px;display:inline-block;border-radius:8px;"></span>
+          </div>
+          <div class="metric-change down" id="mc-cs">—</div>
+          <div style="margin-top:var(--space-3)">
+            <div class="progress" style="margin-top:var(--space-2)">
+              <div class="progress-bar warning" id="cs-progress" style="width:0%"></div>
+            </div>
+            <div class="text-xs text-muted mt-1" id="cs-due">4 due this week</div>
+          </div>
+        </div>
+
+        <div class="metric-card" id="metric-network">
+          <div class="metric-icon">🕸️</div>
+          <div class="metric-label" id="ml-net">Network Links</div>
+          <div class="metric-value" id="mv-net">
+            <span class="skeleton" style="width:60px;height:36px;display:inline-block;border-radius:8px;"></span>
+          </div>
+          <div class="metric-change up" id="mc-net">—</div>
+          <div style="margin-top:var(--space-3)">
+            <div class="confidence-bar">
+              <span class="confidence-label" style="color:var(--color-text-muted);font-size:10px">New</span>
+              <div class="confidence-track"><div class="confidence-fill high" id="net-conf-bar" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── QUICK ACTIONS ── -->
+      <div class="animate-fadeUp delay-2">
+        <div class="section-header">
+          <span class="section-title"><span class="icon">⚡</span> <span id="qa-title">Quick Actions</span></span>
+        </div>
+        <div class="quick-actions">
+
+          <a href="chat.html" class="quick-card" style="--qc:#4f6ef7; --qcbg:rgba(79,110,247,0.1)">
+            <div class="qc-icon">💬</div>
+            <div class="qc-label" id="qa-chat">Chat Assistant</div>
+            <div class="qc-sub" id="qa-chat-sub">Ask in English, ಕನ್ನಡ, or हिंदी</div>
+          </a>
+
+          <a href="network.html" class="quick-card" style="--qc:#a78bfa; --qcbg:rgba(167,139,250,0.1)">
+            <div class="qc-icon">🕸️</div>
+            <div class="qc-label" id="qa-net">Network Graph</div>
+            <div class="qc-sub" id="qa-net-sub">Visualise co-accused links</div>
+          </a>
+
+          <a href="hotspot.html" class="quick-card" style="--qc:#f25c5c; --qcbg:rgba(242,92,92,0.1)">
+            <div class="qc-icon">🔥</div>
+            <div class="qc-label" id="qa-hs">Hotspot Map</div>
+            <div class="qc-sub" id="qa-hs-sub">Heatmap + patrol signals</div>
+          </a>
+
+          <a href="trends.html" class="quick-card" style="--qc:#22c97a; --qcbg:rgba(34,201,122,0.1)">
+            <div class="qc-icon">📈</div>
+            <div class="qc-label" id="qa-trend">Trends & Forecast</div>
+            <div class="qc-sub" id="qa-trend-sub">AI predictions with confidence</div>
+          </a>
+
+        </div>
+      </div>
+
+      <!-- ── MAIN DASH GRID ── -->
+      <div class="dash-grid animate-fadeUp delay-3">
+
+        <!-- Left: Recent Cases -->
+        <div class="cases-card">
+          <div class="cases-card-header">
+            <div class="section-title"><span class="icon">📋</span> <span id="rc-title">Recent Cases</span></div>
+            <a href="chat.html" class="btn btn-ghost sm" id="rc-view-all">View All →</a>
+          </div>
+          <div class="table-wrapper" style="border:none; border-radius:0;">
+            <table class="table" id="cases-table">
+              <thead>
+                <tr>
+                  <th id="th-case">Case ID</th>
+                  <th id="th-station">Station</th>
+                  <th id="th-offence">Offence</th>
+                  <th id="th-status">Status</th>
+                  <th id="th-type">Type</th>
+                  <th id="th-date">Date</th>
+                </tr>
+              </thead>
+              <tbody id="cases-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Right: Alerts + Activity -->
+        <div style="display:flex; flex-direction:column; gap:var(--space-5);">
+
+          <!-- Alert / Notification Panel -->
+          <div class="notif-panel">
+            <div class="notif-panel-header">
+              <span class="section-title" style="font-size:var(--text-base)"><span class="icon">🔔</span> <span id="alerts-title">Alerts</span></span>
+              <span class="badge badge-alert" id="alerts-count">4</span>
+            </div>
+            <div class="notif-list" id="notif-list">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Activity feed -->
+          <div class="activity-panel">
+            <div class="cases-card-header">
+              <span class="section-title" style="font-size:var(--text-base)"><span class="icon">🕐</span> <span id="act-title">Recent Activity</span></span>
+            </div>
+            <div style="padding:var(--space-5);">
+              <div class="timeline" id="activity-timeline">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── MINI CHARTS ROW ── -->
+      <div class="grid-3 animate-fadeUp delay-4">
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title" id="chart1-title">Crime Type Distribution</div>
+              <div class="card-subtitle" id="chart1-sub">Last 30 days · Bengaluru Urban</div>
+            </div>
+            <span class="badge badge-fact">Fact</span>
+          </div>
+          <div id="crime-type-chart" style="height:140px; position:relative;">
+            <canvas id="crimeTypeCanvas"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title" id="chart2-title">Weekly FIR Trend</div>
+              <div class="card-subtitle" id="chart2-sub">This vs last week</div>
+            </div>
+            <span class="badge badge-inference">Inference</span>
+          </div>
+          <div id="fir-trend-chart" style="height:140px;">
+            <canvas id="firTrendCanvas"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title" id="chart3-title">30-Day Forecast</div>
+              <div class="card-subtitle" id="chart3-sub">Chain snatching · 65% confidence</div>
+            </div>
+            <span class="badge badge-prediction">Prediction</span>
+          </div>
+          <div id="forecast-chart" style="height:140px;">
+            <canvas id="forecastCanvas"></canvas>
+          </div>
+          <div class="alert alert-warning" style="margin-top:var(--space-3); padding:var(--space-2) var(--space-3);">
+            <span class="alert-icon" style="font-size:12px">⚠️</span>
+            <span style="font-size:11px" id="pred-disclaimer">Patrol signal only — not grounds for action.</span>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ── Chart.js CDN ── -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function () {
+  'use strict';
+  const D = window.Drishti;
+  const { Session, Lang, RBAC, AuditLog, Toast, ROLES, JURISDICTIONS } = D;
+
+  // Guard
+  if (!RBAC.requireLogin()) return;
+
+  /* ── Session data ── */
+  const session  = Session.load();
+  const role     = session.role;
+  const roleData = ROLES[role] || {};
+  const lang     = session.lang || 'en';
+
+  /* ── Strings ── */
+  const S = {
+    en: {
+      greeting: `Good ${getTimeOfDay()}, ${session.userName}`,
+      dashTitle: 'Intelligence Dashboard',
+      leadText: 'All outputs are decision-support leads — verify against source records before any real-world action.',
+      qaTitle: 'Quick Actions', rcTitle: 'Recent Cases', alertsTitle: 'Alerts',
+      actTitle: 'Recent Activity', viewAll: 'View All →',
+      firsToday: 'FIRs Today', hotspots: 'Active Hotspots',
+      pendingCS: 'Pending Chargesheets', networkLinks: 'Network Links',
+      searchPH: 'Search FIRs, accused, locations…',
+      chart1: 'Crime Type Distribution', chart1sub: 'Last 30 days',
+      chart2: 'Weekly FIR Trend', chart2sub: 'This vs last week',
+      chart3: '30-Day Forecast', chart3sub: 'Chain snatching · 65% confidence',
+      predDis: 'Patrol signal only — not grounds for action.',
+    },
+    kn: {
+      greeting: `ನಮಸ್ಕಾರ, ${session.userName}`,
+      dashTitle: 'ಗುಪ್ತಚರ ಡ್ಯಾಶ್ಬೋರ್ಡ್',
+      leadText: 'ಎಲ್ಲಾ ಔಟ್‌ಪುಟ್‌ಗಳು ನಿರ್ಣಯ ಬೆಂಬಲ ಸೂಚನೆಗಳು — ಯಾವುದೇ ನಿರ್ಧಾರ ಮಾಡುವ ಮೊದಲು ಮೂಲ ದಾಖಲೆಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.',
+      qaTitle: 'ತ್ವರಿತ ಕ್ರಿಯೆಗಳು', rcTitle: 'ಇತ್ತೀಚಿನ ಪ್ರಕರಣಗಳು', alertsTitle: 'ಎಚ್ಚರಿಕೆಗಳು',
+      actTitle: 'ಇತ್ತೀಚಿನ ಚಟುವಟಿಕೆ', viewAll: 'ಎಲ್ಲ ನೋಡಿ →',
+      firsToday: 'ಇಂದು FIR ಗಳು', hotspots: 'ಸಕ್ರಿಯ ಹಾಟ್ಸ್ಪಾಟ್ಗಳು',
+      pendingCS: 'ಬಾಕಿ ಚಾರ್ಜ್‌ಶೀಟ್ಗಳು', networkLinks: 'ನೆಟ್‌ವರ್ಕ್ ಲಿಂಕ್‌ಗಳು',
+      searchPH: 'FIR, ಆರೋಪಿ, ಸ್ಥಳ ಹುಡುಕಿ…',
+      chart1: 'ಅಪರಾಧ ವಿಧ ವಿತರಣೆ', chart1sub: 'ಕಳೆದ ೩೦ ದಿನಗಳು',
+      chart2: 'ವಾರಾಂತ FIR ಪ್ರವೃತ್ತಿ', chart2sub: 'ಈ ವಾರ vs ಕಳೆದ ವಾರ',
+      chart3: '೩೦ ದಿನ ಮುನ್ಸೂಚನೆ', chart3sub: 'ಸರಪಳಿ ಕದಿಯುವಿಕೆ · ೬೫% ವಿಶ್ವಾಸ',
+      predDis: 'ಗಸ್ತು ಸಂಕೇತ ಮಾತ್ರ — ಕ್ರಮಕ್ಕೆ ಆಧಾರವಲ್ಲ.',
+    },
+    hi: {
+      greeting: `नमस्ते, ${session.userName}`,
+      dashTitle: 'आसूचना डैशबोर्ड',
+      leadText: 'सभी आउटपुट निर्णय-सहायक सुराग हैं — कोई भी वास्तविक कार्रवाई से पहले स्रोत अभिलेखों से सत्यापित करें।',
+      qaTitle: 'त्वरित कार्रवाई', rcTitle: 'हालिया मामले', alertsTitle: 'अलर्ट',
+      actTitle: 'हालिया गतिविधि', viewAll: 'सभी देखें →',
+      firsToday: 'आज FIR', hotspots: 'सक्रिय हॉटस्पॉट',
+      pendingCS: 'लंबित चार्जशीट', networkLinks: 'नेटवर्क लिंक',
+      searchPH: 'FIR, आरोपी, स्थान खोजें…',
+      chart1: 'अपराध प्रकार वितरण', chart1sub: 'पिछले ३० दिन',
+      chart2: 'साप्ताहिक FIR प्रवृत्ति', chart2sub: 'इस सप्ताह बनाम पिछला',
+      chart3: '३०-दिवसीय पूर्वानुमान', chart3sub: 'चेन स्नैचिंग · ६५% विश्वास',
+      predDis: 'केवल गश्त संकेत — कार्रवाई का आधार नहीं।',
+    },
+  };
+
+  function getTimeOfDay() {
+    const h = new Date().getHours();
+    return h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
+  }
+
+  /* ── Apply language ── */
+  const T = S[lang] || S.en;
+
+  function applyText() {
+    const tl = S[currentLang] || S.en;
+    setT('dash-greeting', tl.greeting);
+    setT('dash-heading', tl.dashTitle);
+    setT('topbar-title', tl.dashTitle);
+    setT('lead-text', tl.leadText);
+    setT('qa-title', tl.qaTitle);
+    setT('rc-title', tl.rcTitle);
+    setT('rc-view-all', tl.viewAll);
+    setT('alerts-title', tl.alertsTitle);
+    setT('act-title', tl.actTitle);
+    setT('ml-firs', tl.firsToday);
+    setT('ml-hs', tl.hotspots);
+    setT('ml-cs', tl.pendingCS);
+    setT('ml-net', tl.networkLinks);
+    setT('chart1-title', tl.chart1);
+    setT('chart1-sub', tl.chart1sub);
+    setT('chart2-title', tl.chart2);
+    setT('chart2-sub', tl.chart2sub);
+    setT('chart3-title', tl.chart3);
+    setT('chart3-sub', tl.chart3sub);
+    setT('pred-disclaimer', tl.predDis);
+    const sr = document.getElementById('global-search');
+    if (sr) sr.placeholder = tl.searchPH;
+  }
+
+  function setT(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+
+  /* ── User bar ── */
+  function populateUserBar() {
+    const jxData = JURISDICTIONS.find(j => j.id === session.jurisdiction);
+    const jxLabel = lang === 'kn' ? jxData?.labelKn : lang === 'hi' ? jxData?.labelHi : jxData?.label;
+
+    ['user-avatar','topbar-avatar'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = (session.userName || 'U').charAt(0).toUpperCase();
+        el.style.background = `linear-gradient(135deg, ${roleData.color}55, ${roleData.color})`;
+      }
+    });
+    ['user-name','topbar-name'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.textContent = session.userName;
+    });
+    const rLabel = lang === 'kn' ? roleData.labelKn : lang === 'hi' ? roleData.labelHi : roleData.label;
+    ['user-role-label','dash-role-badge'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.textContent = rLabel || roleData.label; el.className = `badge ${roleData.badge}`; }
+    });
+    ['user-jurisdiction','dash-jx'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = (id === 'dash-jx' ? '📍 ' : '') + (jxLabel || session.jurisdiction || '—');
+    });
+    ['user-clearance','dash-clearance'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.textContent = roleData.clearance; el.className = `clearance-badge clearance-${roleData.clearance}`; }
+    });
+
+    // Show collapsed user-menu rows
+    setTimeout(() => {
+      ['jx-row','clr-row','lang-row','logout-btn'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.opacity = '1';
+      });
+    }, 400);
+  }
+
+  /* ── Timestamp ── */
+  function updateTime() {
+    const el = document.getElementById('dash-time');
+    if (el) el.textContent = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+  }
+  updateTime();
+  setInterval(updateTime, 60000);
+
+  /* ── Mock KPI data ── */
+  const mockData = {
+    firsToday: 142, firsPrev: 127, firsSpark: [88,95,102,110,127,135,142],
+    hotspots: 7, hotspotsPrev: 9, hsSpark: [12,10,9,8,9,8,7],
+    pendingCS: 38, pendingCSPrev: 40, csProgress: 62,
+    networkLinks: 214, networkLinksPrev: 209, netConf: 74,
+  };
+
+  function loadKPIs() {
+    setTimeout(() => {
+      // FIRs
+      document.getElementById('mv-firs').textContent = mockData.firsToday;
+      document.getElementById('mc-firs').textContent = `↑ ${mockData.firsToday - mockData.firsPrev} vs yesterday`;
+      document.getElementById('mc-firs').className = 'metric-change up';
+      buildSparkBars('spark-firs', mockData.firsSpark, 'var(--color-accent-primary)');
+
+      // Hotspots
+      document.getElementById('mv-hs').textContent = mockData.hotspots;
+      document.getElementById('mc-hs').textContent = `↓ ${mockData.hotspotsPrev - mockData.hotspots} resolved`;
+      document.getElementById('mc-hs').className = 'metric-change down';
+      buildSparkBars('spark-hs', mockData.hsSpark, 'var(--color-danger)');
+
+      // Pending CS
+      document.getElementById('mv-cs').textContent = mockData.pendingCS;
+      document.getElementById('mc-cs').textContent = `↓ ${mockData.pendingCSPrev - mockData.pendingCS} chargesheeted`;
+      document.getElementById('mc-cs').className = 'metric-change down';
+      document.getElementById('cs-progress').style.width = mockData.csProgress + '%';
+
+      // Network
+      document.getElementById('mv-net').textContent = mockData.networkLinks;
+      document.getElementById('mc-net').textContent = `↑ ${mockData.networkLinks - mockData.networkLinksPrev} new`;
+      document.getElementById('mc-net').className = 'metric-change up';
+      document.getElementById('net-conf-bar').style.width = mockData.netConf + '%';
+    }, 800);
+  }
+
+  function buildSparkBars(containerId, data, color) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    const max = Math.max(...data);
+    data.forEach(val => {
+      const bar = document.createElement('div');
+      bar.className = 'spark-bar';
+      bar.style.height = `${Math.round((val / max) * 100)}%`;
+      bar.style.background = color;
+      container.appendChild(bar);
+    });
+  }
+
+  /* ── Recent cases table ── */
+  const CASES = [
+    { id: 'FIR/2291/2026', station: 'Jayanagar', offence: 'Burglary', status: 'Pending CS', type: 'Fact', date: '03 Jul 2026', badge: 'badge-pending' },
+    { id: 'FIR/0114/2025', station: 'Yelahanka', offence: 'Chain Snatching', status: 'Active', type: 'Fact', date: '12 Jun 2025', badge: 'badge-active' },
+    { id: 'FIR/0087/2026', station: 'KR Puram', offence: 'Robbery', status: 'Chargesheeted', type: 'Fact', date: '19 Jan 2026', badge: 'badge-closed' },
+    { id: 'FIR/1042/2026', station: 'Cubbon Park', offence: 'Theft', status: 'Active', type: 'Inference', date: '07 Jul 2026', badge: 'badge-active' },
+    { id: 'FIR/0553/2026', station: 'JP Nagar', offence: 'Chain Snatching', status: 'Pending CS', type: 'Prediction', date: '01 May 2026', badge: 'badge-pending' },
+  ];
+
+  function buildCasesTable() {
+    const tbody = document.getElementById('cases-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    CASES.forEach((c, i) => {
+      const typeBadge = c.type === 'Fact' ? 'badge-fact' : c.type === 'Inference' ? 'badge-inference' : 'badge-prediction';
+      const row = document.createElement('tr');
+      row.style.animationDelay = `${i * 60}ms`;
+      row.classList.add('animate-fadeUp');
+      row.innerHTML = `
+        <td class="text-primary">
+          <span class="chip">${c.id}</span>
+        </td>
+        <td>${c.station}</td>
+        <td>${c.offence}</td>
+        <td><span class="badge ${c.badge} no-dot">${c.status}</span></td>
+        <td><span class="badge ${typeBadge}">${c.type}</span></td>
+        <td class="mono text-muted">${c.date}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  /* ── Alerts / notifications ── */
+  const NOTIFS = [
+    { icon: '🔥', bg: 'rgba(242,92,92,0.15)', title: 'Hotspot Alert — Jayanagar', sub: 'Burglary cluster · 3 incidents · 6–9 PM', time: '13:02', unread: true },
+    { icon: '🕸️', bg: 'rgba(167,139,250,0.15)', title: 'New Network Link Detected', sub: 'FIR/2291/2026 linked to FIR/0114/2025', time: '11:45', unread: true },
+    { icon: '⏳', bg: 'rgba(245,166,35,0.15)', title: 'Chargesheet Due — FIR/0087', sub: 'Filing deadline: 12 Jul 2026', time: '09:30', unread: true },
+    { icon: '📊', bg: 'rgba(56,196,222,0.15)', title: 'Trend Alert — Chain Snatching ↑12%', sub: 'Bengaluru South · Apr–Jun 2026', time: '08:00', unread: false },
+  ];
+
+  function buildNotifications() {
+    const list = document.getElementById('notif-list');
+    if (!list) return;
+    list.innerHTML = '';
+    NOTIFS.forEach(n => {
+      const item = document.createElement('div');
+      item.className = 'notif-item' + (n.unread ? ' unread' : '');
+      item.innerHTML = `
+        <div class="notif-icon" style="background:${n.bg}">${n.icon}</div>
+        <div class="notif-body">
+          <div class="notif-title">${n.title}</div>
+          <div class="notif-sub">${n.sub}</div>
+        </div>
+        <div class="notif-time">${n.time}</div>
+      `;
+      list.appendChild(item);
+    });
+    const unread = NOTIFS.filter(n => n.unread).length;
+    const countEl = document.getElementById('alerts-count');
+    const nbChat  = document.getElementById('nb-chat');
+    if (countEl) countEl.textContent = unread;
+    if (nbChat)  nbChat.textContent  = unread;
+  }
+
+  /* ── Activity timeline ── */
+  const ACTIVITIES = [
+    { time: '13:05', text: 'Dashboard accessed', cls: '' },
+    { time: '11:45', text: 'Network query: FIR/2291/2026 co-accused', cls: '' },
+    { time: '09:30', text: 'Hotspot map viewed — Bengaluru Urban', cls: 'alert' },
+    { time: '08:00', text: 'Login · Clearance L1 · Jayanagar zone', cls: 'success' },
+  ];
+
+  function buildTimeline() {
+    const tl = document.getElementById('activity-timeline');
+    if (!tl) return;
+    tl.innerHTML = '';
+    ACTIVITIES.forEach(a => {
+      const item = document.createElement('div');
+      item.className = `timeline-item ${a.cls}`;
+      item.innerHTML = `
+        <div class="timeline-time">${a.time}</div>
+        <div class="timeline-content">${a.text}</div>
+      `;
+      tl.appendChild(item);
+    });
+  }
+
+  /* ── Charts ── */
+  function buildCharts() {
+    if (typeof Chart === 'undefined') return;
+
+    Chart.defaults.color = '#8a9bc4';
+    Chart.defaults.borderColor = 'rgba(79,110,247,0.10)';
+    Chart.defaults.font.family = 'Inter, sans-serif';
+    Chart.defaults.font.size = 11;
+
+    // Crime type doughnut
+    new Chart(document.getElementById('crimeTypeCanvas'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Chain Snatching', 'Burglary', 'Robbery', 'Theft', 'Other'],
+        datasets: [{
+          data: [29, 22, 18, 14, 17],
+          backgroundColor: ['#f25c5c','#4f6ef7','#f5a623','#22c97a','#a78bfa'],
+          borderWidth: 0,
+          hoverOffset: 6,
+        }],
+      },
+      options: {
+        cutout: '68%',
+        plugins: { legend: { position: 'right', labels: { boxWidth: 10, padding: 8 } } },
+        maintainAspectRatio: false,
+      },
+    });
+
+    // Weekly FIR trend bar
+    new Chart(document.getElementById('firTrendCanvas'), {
+      type: 'bar',
+      data: {
+        labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+        datasets: [
+          {
+            label: 'This week',
+            data: [18,22,19,25,28,20,10],
+            backgroundColor: 'rgba(79,110,247,0.75)',
+            borderRadius: 4,
+          },
+          {
+            label: 'Last week',
+            data: [15,19,21,22,24,18,8],
+            backgroundColor: 'rgba(79,110,247,0.20)',
+            borderRadius: 4,
+          },
+        ],
+      },
+      options: {
+        plugins: { legend: { display: true, labels: { boxWidth: 8, padding: 8 } } },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+          y: { grid: { color: 'rgba(79,110,247,0.08)' }, ticks: { font: { size: 10 } } },
+        },
+        maintainAspectRatio: false,
+      },
+    });
+
+    // Forecast line
+    const histLabels = ['Jun 1','Jun 8','Jun 15','Jun 22','Jun 30'];
+    const predLabels = ['Jul 7','Jul 14','Jul 21','Jul 30'];
+    new Chart(document.getElementById('forecastCanvas'), {
+      type: 'line',
+      data: {
+        labels: [...histLabels, ...predLabels],
+        datasets: [
+          {
+            label: 'Historical',
+            data: [12, 15, 11, 18, 14, null, null, null, null],
+            borderColor: '#4f6ef7',
+            backgroundColor: 'rgba(79,110,247,0.12)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 3,
+          },
+          {
+            label: 'Forecast',
+            data: [null, null, null, null, 14, 17, 20, 18, 22],
+            borderColor: '#a78bfa',
+            backgroundColor: 'rgba(167,139,250,0.10)',
+            borderWidth: 2,
+            borderDash: [5, 4],
+            tension: 0.4,
+            fill: true,
+            pointRadius: 3,
+          },
+        ],
+      },
+      options: {
+        plugins: { legend: { display: true, labels: { boxWidth: 8, padding: 8 } } },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 30 } },
+          y: { grid: { color: 'rgba(79,110,247,0.08)' }, ticks: { font: { size: 10 } } },
+        },
+        maintainAspectRatio: false,
+      },
+    });
+  }
+
+  /* ── Language switching ── */
+  let currentLang = lang;
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLang = btn.dataset.lang;
+      Session.update({ lang: currentLang });
+      document.documentElement.lang = currentLang;
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === currentLang));
+      applyText();
+      Toast.info(currentLang === 'kn' ? 'ಭಾಷೆ ಬದಲಾಯಿಸಲಾಗಿದೆ' : currentLang === 'hi' ? 'भाषा बदली गई' : 'Language changed');
+    });
+  });
+
+  // Mark active lang buttons
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === currentLang));
+
+  /* ── Sidebar toggle ── */
+  const sidebar = document.getElementById('sidebar');
+  document.getElementById('sidebar-toggle').addEventListener('click', () => {
+    sidebar.classList.toggle('collapsed');
+  });
+
+  /* ── Nav active ── */
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.toggle('active', item.getAttribute('href') === 'dashboard.html');
+  });
+
+  /* ── Logout ── */
+  document.querySelectorAll('[data-action="logout"]').forEach(el => {
+    el.addEventListener('click', () => {
+      AuditLog.log({ type: 'LOGOUT', detail: 'User signed out' });
+      Session.clear();
+      window.location.href = 'index.html';
+    });
+  });
+
+  /* ── Quick export ── */
+  document.getElementById('quick-export-btn').addEventListener('click', () => {
+    Toast.info('Opening export panel…');
+    setTimeout(() => window.location.href = 'export.html', 500);
+  });
+
+  /* ── Global search ── */
+  let searchTimeout;
+  document.getElementById('global-search').addEventListener('input', e => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      if (e.target.value.trim().length > 2) {
+        Toast.info(`Searching "${e.target.value.trim()}"… (Full search in chat module)`);
+      }
+    }, 500);
+  });
+
+  /* ── Init ── */
+  applyText();
+  populateUserBar();
+  loadKPIs();
+  buildCasesTable();
+  buildNotifications();
+  buildTimeline();
+  setTimeout(buildCharts, 900);
+  AuditLog.log({ type: 'PAGE_VIEW', detail: 'dashboard.html' });
+  Toast.success(currentLang === 'kn' ? 'ಸ್ವಾಗತ, ' + session.userName : currentLang === 'hi' ? 'स्वागत है, ' + session.userName : 'Welcome back, ' + session.userName);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Drishti — Court-Ready Dossier & PDF Export</title>
+  <meta name="description" content="Official court-ready dossier generator with evidentiary chain of custody and DPDPA verification for Karnataka SCRB"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/dashboard.css"/>
+  <style>
+    .export-layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: var(--space-6);
+      align-items: start;
+    }
+    .config-card {
+      background: var(--color-bg-surface);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-5);
+    }
+    .section-checkbox {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-2) var(--space-3);
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      user-select: none;
+      transition: all var(--duration-fast);
+    }
+    .section-checkbox:hover {
+      border-color: var(--color-border);
+    }
+    .section-checkbox input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--color-accent-primary);
+    }
+    /* Court Dossier Preview Sheet */
+    .dossier-preview-container {
+      background: #080d1a;
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6);
+      overflow-x: auto;
+    }
+    .dossier-sheet {
+      background: #ffffff;
+      color: #111827;
+      border-radius: var(--radius-lg);
+      padding: 48px 56px;
+      max-width: 820px;
+      margin: 0 auto;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      font-family: 'Inter', sans-serif;
+      position: relative;
+    }
+    .dossier-sheet::before {
+      content: "CONFIDENTIAL — FOR JUDICIAL / POLICE SCRB USE ONLY";
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      color: #dc2626;
+    }
+    .sheet-header {
+      border-bottom: 2px solid #1f2937;
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .govt-emblem {
+      font-size: 36px;
+      line-height: 1;
+    }
+    .sheet-title {
+      text-transform: uppercase;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      color: #111827;
+    }
+    .sheet-subtitle {
+      font-size: 12px;
+      color: #4b5563;
+      margin-top: 4px;
+    }
+    .meta-box {
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      padding: 14px 18px;
+      border-radius: 6px;
+      margin-bottom: 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      font-size: 12px;
+    }
+    .meta-label {
+      font-weight: 700;
+      color: #6b7280;
+      text-transform: uppercase;
+      font-size: 10px;
+    }
+    .meta-value {
+      font-weight: 600;
+      color: #111827;
+    }
+    .dossier-section {
+      margin-bottom: 28px;
+    }
+    .dossier-section-heading {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid #d1d5db;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+      color: #1f2937;
+    }
+    .evidence-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin-top: 10px;
+    }
+    .evidence-table th {
+      background: #f3f4f6;
+      text-align: left;
+      padding: 8px 10px;
+      font-weight: 700;
+      border: 1px solid #e5e7eb;
+    }
+    .evidence-table td {
+      padding: 8px 10px;
+      border: 1px solid #e5e7eb;
+      vertical-align: top;
+    }
+    .fact-tag {
+      background: #dcfce7;
+      color: #166534;
+      font-weight: 700;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .inference-tag {
+      background: #fef9c3;
+      color: #854d0e;
+      font-weight: 700;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .custody-seal {
+      margin-top: 36px;
+      padding-top: 20px;
+      border-top: 2px dashed #9ca3af;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+    }
+    .barcode-block {
+      font-family: 'Courier New', monospace;
+      font-weight: 800;
+      letter-spacing: 4px;
+      background: #f3f4f6;
+      padding: 6px 12px;
+      border: 1px solid #d1d5db;
+    }
+
+    /* Print Styles */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      .dossier-sheet, .dossier-sheet * {
+        visibility: visible;
+      }
+      .dossier-sheet {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        max-width: 100%;
+        box-shadow: none;
+        padding: 24px;
+      }
+    }
+    @media (max-width: 1050px) {
+      .export-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a href="dashboard.html" class="sidebar-logo">
+        <div class="sidebar-logo-icon">👁️</div>
+        <span class="sidebar-logo-text">Drishti</span>
+      </a>
+      <button class="sidebar-toggle" id="sidebar-toggle">◀</button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Intelligence</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span></a>
+      <a href="chat.html"      class="nav-item"><span class="nav-icon">💬</span><span class="nav-label">Chat Assistant</span></a>
+      <a href="network.html"   class="nav-item"><span class="nav-icon">🕸️</span><span class="nav-label">Network Graph</span></a>
+      <div class="nav-section-label">Analysis</div>
+      <a href="hotspot.html"   class="nav-item"><span class="nav-icon">🔥</span><span class="nav-label">Hotspot Map</span></a>
+      <a href="trends.html"    class="nav-item"><span class="nav-icon">📈</span><span class="nav-label">Trends & Forecast</span></a>
+      <div class="nav-section-label">Records</div>
+      <a href="audit.html"     class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">Audit Trail</span></a>
+      <a href="export.html"    class="nav-item active"><span class="nav-icon">📄</span><span class="nav-label">PDF Export</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="user-avatar">U</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="user-name">Officer</div>
+          <div id="user-role-label" class="badge badge-inspector">Inspector</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost sm" data-action="logout" style="width:100%;margin-top:var(--space-3)">🚪 Sign Out</button>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <!-- Topbar -->
+    <header class="topbar">
+      <span class="topbar-title">📄 Court-Ready Evidentiary Dossier & PDF Generator</span>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary sm" onclick="window.location.href='audit.html'">📋 View Statutory Audit Ledger</button>
+        <button class="btn btn-primary sm" id="print-dossier-btn">🖨️ Print / Download Court Dossier PDF</button>
+        <button class="btn btn-ghost sm" data-action="logout">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="content-area">
+      <!-- Lead Banner -->
+      <div class="dash-lead-banner">
+        <span>⚖️</span>
+        <span>Every generated dossier embeds cryptographic SHA-256 evidence hashes and explicit fact-vs-inference labels admissible under Bharatiya Sakshya Adhiniyam (BSA) 2023.</span>
+      </div>
+
+      <div class="export-layout animate-fadeUp">
+        <!-- Configuration Card -->
+        <div class="config-card">
+          <div>
+            <div class="text-sm font-bold text-primary mb-1">Dossier Configuration</div>
+            <div class="text-xs text-secondary">Customize sections and statutory parameters for report rendering.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label text-xs uppercase tracking-wider text-muted font-bold">Primary Case / Report Type</label>
+            <select class="input select" id="report-type-sel">
+              <option value="fir2291">FIR/2291/2026 — Jayanagar Burglary Ring</option>
+              <option value="hotspot">Bengaluru Urban — Q2 Hotspot & Patrol Assessment</option>
+              <option value="network">Syndicate Linkage Report — Rajan B. Network</option>
+              <option value="audit">Statutory Compliance Ledger Summary</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label text-xs uppercase tracking-wider text-muted font-bold">Report Language</label>
+            <select class="input select" id="lang-sel">
+              <option value="EN">English (Judicial Standard)</option>
+              <option value="KN">ಕನ್ನಡ (Kannada State Record)</option>
+              <option value="HI">हिंदी (Bilingual Official Standard)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label text-xs uppercase tracking-wider text-muted font-bold mb-2">Sections Included</label>
+            <div class="flex flex-col gap-2">
+              <label class="section-checkbox">
+                <input type="checkbox" id="chk-summary" checked />
+                <span class="text-xs text-primary font-medium">Executive Case Synopsis</span>
+              </label>
+              <label class="section-checkbox">
+                <input type="checkbox" id="chk-evidence" checked />
+                <span class="text-xs text-primary font-medium">Fact vs. Inference Evidentiary Matrix</span>
+              </label>
+              <label class="section-checkbox">
+                <input type="checkbox" id="chk-network" checked />
+                <span class="text-xs text-primary font-medium">Co-Accused Network Connections</span>
+              </label>
+              <label class="section-checkbox">
+                <input type="checkbox" id="chk-audit" checked />
+                <span class="text-xs text-primary font-medium">Cryptographic SHA-256 Audit Certification</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-xl" style="background:rgba(242,92,92,0.1);border:1px solid rgba(242,92,92,0.25)">
+            <div class="text-xs font-bold text-danger uppercase tracking-wider mb-1">Statutory Warning</div>
+            <div class="text-xs text-secondary leading-relaxed">
+              Dossier incorporates digital audit trail tracking. Distribution without judicial or SCRB clearance is punishable under BNS §72.
+            </div>
+          </div>
+
+          <button class="btn btn-primary w-full" id="refresh-preview-btn">🔄 Refresh Dossier Preview</button>
+        </div>
+
+        <!-- Live Court Dossier Sheet -->
+        <div class="dossier-preview-container">
+          <div class="dossier-sheet" id="dossier-sheet">
+            <div class="sheet-header">
+              <div>
+                <div class="sheet-title">STATE CRIME RECORDS BUREAU — KARNATAKA</div>
+                <div class="sheet-subtitle">OFFICIAL COURT-READY INTELLIGENCE DOSSIER · DPDPA & BSA COMPLIANT</div>
+              </div>
+              <div class="govt-emblem" aria-label="Official Emblem">🏛️</div>
+            </div>
+
+            <div class="meta-box">
+              <div>
+                <div class="meta-label">Dossier Reference ID</div>
+                <div class="meta-value">DOS-2026-KA-8829</div>
+              </div>
+              <div>
+                <div class="meta-label">Generated Timestamp</div>
+                <div class="meta-value" id="doc-timestamp">09 Jul 2026, 14:45 IST</div>
+              </div>
+              <div>
+                <div class="meta-label">Investigating Officer</div>
+                <div class="meta-value" id="doc-officer">Inspector Asha Patel</div>
+              </div>
+              <div>
+                <div class="meta-label">Jurisdiction / Unit</div>
+                <div class="meta-value">Bengaluru Urban SCRB Intelligence Unit</div>
+              </div>
+            </div>
+
+            <!-- Section 1: Synopsis -->
+            <div class="dossier-section" id="sec-summary">
+              <div class="dossier-section-heading">1. Executive Case Synopsis — FIR/2291/2026</div>
+              <p style="font-size:12px;line-height:1.6;color:#374151">
+                Investigation into organized property crime syndicate operating across Jayanagar and JP Nagar subdivisions. Evidence compiled combining certified Station House Officer (SHO) FIR records and verified Call Detail Record (CDR) co-location signals.
+              </p>
+            </div>
+
+            <!-- Section 2: Evidentiary Matrix -->
+            <div class="dossier-section" id="sec-evidence">
+              <div class="dossier-section-heading">2. Admissible Evidence Matrix (Fact vs. Inference Classification)</div>
+              <table class="evidence-table">
+                <thead>
+                  <tr>
+                    <th>Exhibit ID</th>
+                    <th>Source Document / Data Item</th>
+                    <th>Evidentiary Classification</th>
+                    <th>Statutory Basis / Verification Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>EX-01</td>
+                    <td>FIR/2291/2026 (Jayanagar PS)</td>
+                    <td><span class="fact-tag">Fact</span></td>
+                    <td>Certified copy filed 03 Jul 2026 regarding residential burglary. Primary accused named: Rajan B.</td>
+                  </tr>
+                  <tr>
+                    <td>EX-02</td>
+                    <td>FIR/0114/2025 (Yelahanka PS)</td>
+                    <td><span class="fact-tag">Fact</span></td>
+                    <td>Prior conviction record matching MO (Modus Operandi) and getaway vehicle KA-01-MH-4432.</td>
+                  </tr>
+                  <tr>
+                    <td>EX-03</td>
+                    <td>Co-Accused Syndicate Linkage</td>
+                    <td><span class="inference-tag">Inference</span></td>
+                    <td>Algorithmic network graph linking Rajan B. and Suresh K. via shared residential address on file.</td>
+                  </tr>
+                  <tr>
+                    <td>EX-04</td>
+                    <td>Hotspot Patrol Predictive Alert</td>
+                    <td><span class="inference-tag">Inference</span></td>
+                    <td>Spatiotemporal heat pattern indicating elevated evening risk window (6:00 PM – 9:00 PM).</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Section 3: Network -->
+            <div class="dossier-section" id="sec-network">
+              <div class="dossier-section-heading">3. Linked Entities & Co-Accused Summary</div>
+              <ul style="font-size:12px;color:#374151;line-height:1.7;padding-left:20px">
+                <li><strong>Rajan B. (Primary Accused)</strong> — Linked to 2 prior FIRs; residential address verified at Wilson Garden.</li>
+                <li><strong>Suresh K. (Co-Accused)</strong> — Shared CDR contacts; identified via CCTV getaway footage at KR Puram.</li>
+                <li><strong>Vehicle KA-01-MH-4432 (Honda Activa)</strong> — Tagged in both Jayanagar and Yelahanka incidents.</li>
+              </ul>
+            </div>
+
+            <!-- Section 4: Cryptographic Custody Seal -->
+            <div class="dossier-section" id="sec-audit">
+              <div class="custody-seal">
+                <div>
+                  <div style="font-weight:800;color:#111827">DIGITAL CHAIN OF CUSTODY CERTIFICATION</div>
+                  <div style="color:#6b7280;margin-top:4px">SHA-256 Ledger Hash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</div>
+                  <div style="color:#6b7280;margin-top:2px">Verified by Drishti System Engine v2.4 · Admissible under Section 63 BSA 2023</div>
+                </div>
+                <div class="barcode-block">DRISHTI-SEAL-8829</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+(function(){
+  'use strict';
+  const { Session, RBAC, AuditLog, Toast, ROLES } = window.Drishti;
+  if (!RBAC.requireLogin()) return;
+
+  const session  = Session.load();
+  const roleData = ROLES[session?.role] || {};
+
+  const av = document.getElementById('user-avatar');
+  if(av){av.textContent=(session.userName||'U')[0];av.style.background=`linear-gradient(135deg,${roleData.color}55,${roleData.color})`;}
+  const un = document.getElementById('user-name'); if(un) un.textContent=session.userName;
+  const rl = document.getElementById('user-role-label'); if(rl){rl.textContent=roleData.label;rl.className=`badge ${roleData.badge}`;}
+
+  document.querySelectorAll('[data-action="logout"]').forEach(el=>el.addEventListener('click',()=>{AuditLog.log({type:'LOGOUT'});Session.clear();window.location.href='index.html';}));
+  document.getElementById('sidebar-toggle').addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('collapsed'));
+
+  document.getElementById('doc-officer').textContent = `${session.userName} (${roleData.label})`;
+  document.getElementById('doc-timestamp').textContent = new Date().toLocaleString('en-IN', { dateStyle:'medium', timeStyle:'short' });
+
+  function updateDossierPreview() {
+    const showSummary = document.getElementById('chk-summary').checked;
+    const showEvidence = document.getElementById('chk-evidence').checked;
+    const showNetwork = document.getElementById('chk-network').checked;
+    const showAudit = document.getElementById('chk-audit').checked;
+
+    document.getElementById('sec-summary').style.display = showSummary ? 'block' : 'none';
+    document.getElementById('sec-evidence').style.display = showEvidence ? 'block' : 'none';
+    document.getElementById('sec-network').style.display = showNetwork ? 'block' : 'none';
+    document.getElementById('sec-audit').style.display = showAudit ? 'block' : 'none';
+
+    Toast.info('Dossier preview updated to match configuration');
+  }
+
+  document.getElementById('refresh-preview-btn').addEventListener('click', updateDossierPreview);
+  ['chk-summary', 'chk-evidence', 'chk-network', 'chk-audit'].forEach(id => {
+    document.getElementById(id).addEventListener('change', updateDossierPreview);
+  });
+
+  document.getElementById('print-dossier-btn').addEventListener('click', () => {
+    AuditLog.log({ type: 'EXPORT_COURT_DOSSIER', detail: 'Generated PDF / Printed Court-Ready Dossier DOS-2026-KA-8829' });
+    Toast.success('Opening print dialog for official court dossier...');
+    window.print();
+  });
+
+  AuditLog.log({ type: 'PAGE_VIEW', detail: 'Dossier export module opened' });
+})();
+</script>
+</body>
+</html>

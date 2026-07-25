@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Drishti — Network Graph</title>
+  <meta name="description" content="Criminal network relationship graph — co-accused, locations, vehicles with evidentiary basis"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/dashboard.css"/>
+  <link rel="stylesheet" href="css/network.css"/>
+</head>
+<body>
+
+<!-- Graph tooltip -->
+<div class="graph-tooltip" id="graph-tooltip">
+  <div class="gt-title" id="gt-title">Node</div>
+  <div class="gt-row"><span id="gt-type">Type</span><span id="gt-val">—</span></div>
+  <div class="gt-row"><span id="gt-basis">Basis</span><span id="gt-basis-val">—</span></div>
+</div>
+
+<div class="network-shell">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a href="dashboard.html" class="sidebar-logo">
+        <div class="sidebar-logo-icon">👁️</div>
+        <span class="sidebar-logo-text">Drishti</span>
+      </a>
+      <button class="sidebar-toggle" id="sidebar-toggle">◀</button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Intelligence</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span></a>
+      <a href="chat.html"      class="nav-item"><span class="nav-icon">💬</span><span class="nav-label">Chat Assistant</span></a>
+      <a href="network.html"   class="nav-item active"><span class="nav-icon">🕸️</span><span class="nav-label">Network Graph</span></a>
+      <div class="nav-section-label">Analysis</div>
+      <a href="hotspot.html"   class="nav-item"><span class="nav-icon">🔥</span><span class="nav-label">Hotspot Map</span></a>
+      <a href="trends.html"    class="nav-item"><span class="nav-icon">📈</span><span class="nav-label">Trends & Forecast</span></a>
+      <div class="nav-section-label">Records</div>
+      <a href="audit.html"     class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">Audit Trail</span></a>
+      <a href="export.html"    class="nav-item"><span class="nav-icon">📄</span><span class="nav-label">PDF Export</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="user-avatar">U</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="user-name">Officer</div>
+          <div id="user-role-label" class="badge badge-inspector">Inspector</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost sm" data-action="logout" style="width:100%;margin-top:var(--space-3)">🚪 Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- ══ NETWORK MAIN ══ -->
+  <div class="network-main">
+
+    <!-- Topbar -->
+    <header class="net-topbar">
+      <div class="net-topbar-title">🕸️ Criminal Network Graph</div>
+
+      <div class="flex items-center gap-3" style="margin-left:auto">
+        <!-- Case selector -->
+        <select class="input select" id="case-selector" style="padding:var(--space-2) var(--space-6) var(--space-2) var(--space-3);font-size:var(--text-sm);width:220px">
+          <option value="all">All Cases — Bengaluru Urban</option>
+          <option value="fir2291">FIR/2291/2026 — Jayanagar Burglary</option>
+          <option value="fir0114">FIR/0114/2025 — Chain Snatching Ring</option>
+          <option value="fir0087">FIR/0087/2026 — KR Puram Robbery</option>
+        </select>
+
+        <div class="flex items-center gap-2">
+          <span class="badge badge-inference">Inference</span>
+          <span class="text-xs text-muted">Every edge is evidence-backed</span>
+        </div>
+
+        <button class="btn btn-secondary sm" id="filter-toggle-btn">⚙️ Filters</button>
+        <button class="btn btn-secondary sm" id="export-svg-btn">⬇️ Export SVG</button>
+        <button class="btn btn-ghost sm" data-action="logout">Sign Out</button>
+      </div>
+    </header>
+
+    <div class="graph-body">
+
+      <!-- ── FILTER PANEL ── -->
+      <div class="filter-panel" id="filter-panel">
+
+        <div class="filter-section">
+          <div class="filter-section-title">Node Types</div>
+          <label class="filter-checkbox"><input type="checkbox" class="node-filter" data-type="accused" checked/><div class="node-type-dot" style="background:#f25c5c"></div>Accused Person</label>
+          <label class="filter-checkbox"><input type="checkbox" class="node-filter" data-type="case" checked/><div class="node-type-dot" style="background:#4f6ef7"></div>FIR / Case</label>
+          <label class="filter-checkbox"><input type="checkbox" class="node-filter" data-type="location" checked/><div class="node-type-dot" style="background:#22c97a"></div>Location</label>
+          <label class="filter-checkbox"><input type="checkbox" class="node-filter" data-type="vehicle" checked/><div class="node-type-dot" style="background:#f5a623"></div>Vehicle</label>
+          <label class="filter-checkbox"><input type="checkbox" class="node-filter" data-type="phone" checked/><div class="node-type-dot" style="background:#a78bfa"></div>Phone / Contact</label>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-section-title">Link Types</div>
+          <label class="filter-checkbox"><input type="checkbox" class="link-filter" data-type="co-accused" checked/><div class="node-type-dot" style="background:#f25c5c"></div>Co-accused</label>
+          <label class="filter-checkbox"><input type="checkbox" class="link-filter" data-type="shared-address" checked/><div class="node-type-dot" style="background:#22c97a"></div>Shared Address</label>
+          <label class="filter-checkbox"><input type="checkbox" class="link-filter" data-type="same-mo" checked/><div class="node-type-dot" style="background:#f5a623"></div>Same MO</label>
+          <label class="filter-checkbox"><input type="checkbox" class="link-filter" data-type="vehicle" checked/><div class="node-type-dot" style="background:#a78bfa"></div>Same Vehicle</label>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-section-title">Graph Depth</div>
+          <div class="form-group">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs text-secondary">Depth: <strong id="depth-val">2</strong></span>
+            </div>
+            <input type="range" id="depth-slider" min="1" max="4" value="2"
+              style="width:100%;accent-color:var(--color-accent-primary)"/>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-section-title">Physics</div>
+          <div class="form-group">
+            <span class="text-xs text-muted">Charge Strength</span>
+            <input type="range" id="charge-slider" min="-800" max="-50" value="-300"
+              style="width:100%;margin-top:var(--space-2);accent-color:var(--color-accent-primary)"/>
+          </div>
+          <div style="margin-top:var(--space-3);display:flex;flex-direction:column;gap:var(--space-2)">
+            <label class="toggle" style="font-size:var(--text-xs)">
+              <input type="checkbox" id="labels-toggle" checked/>
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              Show labels
+            </label>
+            <label class="toggle" style="font-size:var(--text-xs)">
+              <input type="checkbox" id="edge-labels-toggle" checked/>
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              Show edge evidence
+            </label>
+            <label class="toggle" style="font-size:var(--text-xs)">
+              <input type="checkbox" id="pin-toggle"/>
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              Pin on drag
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-section-title">Network Statistics</div>
+          <div class="net-stats">
+            <div class="net-stat"><div class="net-stat-val" id="stat-nodes">0</div><div class="net-stat-lbl">Nodes</div></div>
+            <div class="net-stat"><div class="net-stat-val" id="stat-edges">0</div><div class="net-stat-lbl">Edges</div></div>
+            <div class="net-stat"><div class="net-stat-val" id="stat-clusters">0</div><div class="net-stat-lbl">Clusters</div></div>
+            <div class="net-stat"><div class="net-stat-val" id="stat-hubs">0</div><div class="net-stat-lbl">Hub Nodes</div></div>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="lead-banner" style="font-size:10px">
+            ⚠️ Network inference — verify source records before acting.
+          </div>
+        </div>
+      </div>
+
+      <!-- ── GRAPH CANVAS ── -->
+      <div class="graph-canvas-wrap" id="graph-canvas-wrap">
+
+        <!-- Floating search -->
+        <div class="graph-search">
+          <input type="search" id="graph-search-input" placeholder="🔍  Search node (name, FIR, location…)"/>
+          <button class="graph-btn" id="graph-search-btn" style="width:36px;flex-shrink:0">↵</button>
+        </div>
+
+        <!-- Legend -->
+        <div class="graph-legend" id="graph-legend">
+          <div style="font-size:9px;font-weight:700;color:var(--color-text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">Legend</div>
+          <div class="legend-item"><svg width="10" height="10"><circle cx="5" cy="5" r="5" fill="#f25c5c"/></svg>Accused</div>
+          <div class="legend-item"><svg width="10" height="10"><circle cx="5" cy="5" r="5" fill="#4f6ef7"/></svg>Case (FIR)</div>
+          <div class="legend-item"><svg width="10" height="10"><circle cx="5" cy="5" r="5" fill="#22c97a"/></svg>Location</div>
+          <div class="legend-item"><svg width="10" height="10"><circle cx="5" cy="5" r="5" fill="#f5a623"/></svg>Vehicle</div>
+          <div class="legend-item"><svg width="10" height="10"><circle cx="5" cy="5" r="5" fill="#a78bfa"/></svg>Phone/Contact</div>
+          <div style="margin-top:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.06)">
+            <div class="legend-item"><svg width="20" height="4"><line x1="0" y1="2" x2="20" y2="2" stroke="#f25c5c" stroke-width="2"/></svg>Co-accused</div>
+            <div class="legend-item"><svg width="20" height="4"><line x1="0" y1="2" x2="20" y2="2" stroke="#22c97a" stroke-width="1.5" stroke-dasharray="3,2"/></svg>Shared Address</div>
+          </div>
+        </div>
+
+        <!-- SVG -->
+        <svg id="graph-svg" aria-label="Criminal network graph"></svg>
+
+        <!-- Minimap -->
+        <div class="minimap" id="minimap">
+          <div class="minimap-label">Minimap</div>
+          <svg id="minimap-svg" width="160" height="100"></svg>
+        </div>
+
+        <!-- Graph controls -->
+        <div class="graph-controls">
+          <button class="graph-btn" id="zoom-in-btn"  data-tooltip="Zoom in">+</button>
+          <button class="graph-btn" id="zoom-out-btn" data-tooltip="Zoom out">−</button>
+          <button class="graph-btn" id="zoom-fit-btn" data-tooltip="Fit to screen">⊞</button>
+          <button class="graph-btn" id="reset-btn"    data-tooltip="Reset layout">↺</button>
+          <button class="graph-btn" id="pause-btn"    data-tooltip="Pause physics">⏸</button>
+        </div>
+
+      </div>
+
+      <!-- ── NODE DETAIL PANEL ── -->
+      <div class="node-detail-panel empty" id="node-detail-panel">
+        <div class="ndp-header">
+          <span style="font-size:var(--text-sm);font-weight:600;color:var(--color-text-primary)" id="ndp-title">Node Details</span>
+          <button class="btn btn-icon btn-ghost sm" id="ndp-close-btn">✕</button>
+        </div>
+        <div class="ndp-body" id="ndp-body">
+          <!-- Populated on node click -->
+        </div>
+      </div>
+
+    </div><!-- /graph-body -->
+  </div><!-- /network-main -->
+</div><!-- /network-shell -->
+
+<!-- D3.js -->
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function () {
+'use strict';
+const { Session, RBAC, AuditLog, Toast, ROLES } = window.Drishti;
+if (!RBAC.requireLogin()) return;
+
+/* ─── GUARD ─── */
+const session  = Session.load();
+const roleData = ROLES[session?.role] || {};
+
+/* ─── POPULATE USER BAR ─── */
+const av = document.getElementById('user-avatar');
+if (av) { av.textContent = (session.userName||'U')[0]; av.style.background = `linear-gradient(135deg,${roleData.color}55,${roleData.color})`; }
+const un = document.getElementById('user-name');      if (un) un.textContent = session.userName;
+const rl = document.getElementById('user-role-label');if (rl) { rl.textContent = roleData.label; rl.className = `badge ${roleData.badge}`; }
+
+document.querySelectorAll('[data-action="logout"]').forEach(el => el.addEventListener('click', () => { AuditLog.log({type:'LOGOUT'}); Session.clear(); window.location.href='index.html'; }));
+const sidebar = document.getElementById('sidebar');
+document.getElementById('sidebar-toggle').addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+
+/* ─── MOCK GRAPH DATA ─── */
+const GRAPH_DATA = {
+  all: {
+    nodes: [
+      // Cases
+      { id:'c1', label:'FIR/2291/2026', type:'case',     fir:'FIR/2291/2026', offence:'Burglary',       station:'Jayanagar PS',   date:'03 Jul 2026', x:400, y:280 },
+      { id:'c2', label:'FIR/0114/2025', type:'case',     fir:'FIR/0114/2025', offence:'Chain Snatching',station:'Yelahanka PS',   date:'12 Jun 2025', x:200, y:180 },
+      { id:'c3', label:'FIR/0087/2026', type:'case',     fir:'FIR/0087/2026', offence:'Robbery',        station:'KR Puram PS',    date:'19 Jan 2026', x:600, y:180 },
+      { id:'c4', label:'FIR/1042/2026', type:'case',     fir:'FIR/1042/2026', offence:'Theft',          station:'Cubbon Park PS', date:'07 Jul 2026', x:500, y:400 },
+      // Accused
+      { id:'a1', label:'Rajan B.',      type:'accused',  role:'Primary Accused', prior:'2 prior FIRs',   x:300, y:350 },
+      { id:'a2', label:'Suresh K.',     type:'accused',  role:'Co-accused',     prior:'1 prior FIR',    x:500, y:280 },
+      { id:'a3', label:'Anand M.',      type:'accused',  role:'Co-accused',     prior:'None on record', x:350, y:180 },
+      { id:'a4', label:'Vikram R.',     type:'accused',  role:'Primary Accused',prior:'3 prior FIRs',   x:650, y:300 },
+      // Locations
+      { id:'l1', label:'14B Wilson Garden',type:'location',address:'14B, 4th Cross, Wilson Garden', x:250, y:450 },
+      { id:'l2', label:'Jayanagar Beat',   type:'location',address:'Jayanagar 4th Block, Beat 7',   x:450, y:150 },
+      { id:'l3', label:'JP Nagar',          type:'location',address:'JP Nagar 6th Phase',            x:150, y:320 },
+      // Vehicles
+      { id:'v1', label:'KA-01-MH-4432', type:'vehicle', regn:'KA-01-MH-4432', make:'Honda Activa', x:200, y:260 },
+      { id:'v2', label:'KA-04-AB-7891', type:'vehicle', regn:'KA-04-AB-7891', make:'TVS Apache',   x:600, y:400 },
+      // Phone
+      { id:'p1', label:'+91-98xxx-1234', type:'phone',  note:'Linked via CDR', x:450, y:420 },
+    ],
+    links: [
+      { source:'a1', target:'c1', type:'co-accused',     basis:'Co-accused, FIR/2291/2026',          fir:'FIR/2291/2026' },
+      { source:'a2', target:'c1', type:'co-accused',     basis:'Co-accused, FIR/2291/2026',          fir:'FIR/2291/2026' },
+      { source:'a3', target:'c2', type:'co-accused',     basis:'Co-accused, FIR/0114/2025',          fir:'FIR/0114/2025' },
+      { source:'a1', target:'c2', type:'same-mo',        basis:'Same MO — chain snatching, FIR/0114',fir:'FIR/0114/2025' },
+      { source:'a4', target:'c3', type:'co-accused',     basis:'Primary accused, FIR/0087/2026',     fir:'FIR/0087/2026' },
+      { source:'a2', target:'c3', type:'same-mo',        basis:'Same MO — robbery, FIR/0087',        fir:'FIR/0087/2026' },
+      { source:'a1', target:'l1', type:'shared-address', basis:'Shared address on file, FIR/2291',   fir:'FIR/2291/2026' },
+      { source:'a2', target:'l1', type:'shared-address', basis:'Shared address on file, FIR/0087',   fir:'FIR/0087/2026' },
+      { source:'c1', target:'l2', type:'shared-address', basis:'Incident location, FIR/2291',        fir:'FIR/2291/2026' },
+      { source:'c2', target:'l3', type:'shared-address', basis:'Incident location, FIR/0114',        fir:'FIR/0114/2025' },
+      { source:'a1', target:'v1', type:'vehicle',        basis:'Vehicle seen near incident, FIR/0114',fir:'FIR/0114/2025' },
+      { source:'a3', target:'v1', type:'vehicle',        basis:'Vehicle registration match, FIR/0114',fir:'FIR/0114/2025' },
+      { source:'a4', target:'v2', type:'vehicle',        basis:'Getaway vehicle, FIR/0087',           fir:'FIR/0087/2026' },
+      { source:'a1', target:'p1', type:'co-accused',     basis:'CDR linkage — lawfully obtained',     fir:'FIR/2291/2026' },
+      { source:'a2', target:'p1', type:'co-accused',     basis:'Shared contact — CDR data',           fir:'FIR/0087/2026' },
+      { source:'a2', target:'c4', type:'co-accused',     basis:'Co-accused, FIR/1042/2026',           fir:'FIR/1042/2026' },
+    ],
+  },
+};
+
+/* ─── COLORS / SHAPES ─── */
+const NODE_CFG = {
+  accused:  { color:'#f25c5c', stroke:'#ff8a8a', r:20, icon:'👤' },
+  case:     { color:'#4f6ef7', stroke:'#7b93ff', r:18, icon:'📋' },
+  location: { color:'#22c97a', stroke:'#6ff0b0', r:16, icon:'📍' },
+  vehicle:  { color:'#f5a623', stroke:'#ffd080', r:15, icon:'🚗' },
+  phone:    { color:'#a78bfa', stroke:'#c4b0ff', r:14, icon:'📱' },
+};
+
+const LINK_CFG = {
+  'co-accused':     { color:'#f25c5c', width:2,   dash:'' },
+  'shared-address': { color:'#22c97a', width:1.5, dash:'4,3' },
+  'same-mo':        { color:'#f5a623', width:1.5, dash:'6,3' },
+  'vehicle':        { color:'#a78bfa', width:1.5, dash:'3,2' },
+};
+
+/* ─── D3 SETUP ─── */
+let simulation, svg, g, zoomBehavior;
+let showLabels = true, showEdgeLabels = true, pinOnDrag = false;
+let paused = false;
+let currentData = JSON.parse(JSON.stringify(GRAPH_DATA.all));
+let selectedNode = null;
+
+const svgEl  = document.getElementById('graph-svg');
+const width  = () => svgEl.clientWidth;
+const height = () => svgEl.clientHeight;
+
+function initGraph(data) {
+  svgEl.innerHTML = '';
+
+  /* defs */
+  const defs = d3.select(svgEl).append('defs');
+  defs.append('marker').attr('id','arrow').attr('viewBox','0 -4 8 8').attr('refX',28).attr('refY',0)
+    .attr('markerWidth',6).attr('markerHeight',6).attr('orient','auto')
+    .append('path').attr('d','M0,-4L8,0L0,4').attr('fill','#4e5e82');
+
+  /* Background grid */
+  const bg = d3.select(svgEl).append('g').attr('class','bg-grid');
+  for (let x = 0; x < 2000; x += 48) bg.append('line').attr('x1',x).attr('y1',0).attr('x2',x).attr('y2',1400).attr('stroke','rgba(79,110,247,0.04)').attr('stroke-width',1);
+  for (let y = 0; y < 1400; y += 48) bg.append('line').attr('x1',0).attr('y1',y).attr('x2',2000).attr('y2',y).attr('stroke','rgba(79,110,247,0.04)').attr('stroke-width',1);
+
+  /* Zoom */
+  g = d3.select(svgEl).append('g').attr('class','graph-g');
+
+  zoomBehavior = d3.zoom()
+    .scaleExtent([0.1, 4])
+    .on('zoom', e => { g.attr('transform', e.transform); updateMinimap(e.transform); });
+
+  d3.select(svgEl).call(zoomBehavior);
+
+  /* Simulation */
+  simulation = d3.forceSimulation(data.nodes)
+    .force('link', d3.forceLink(data.links).id(d => d.id).distance(d => {
+      if (d.type === 'co-accused') return 130;
+      if (d.type === 'vehicle')    return 100;
+      return 120;
+    }).strength(0.6))
+    .force('charge',  d3.forceManyBody().strength(-320))
+    .force('center',  d3.forceCenter(width() / 2, height() / 2))
+    .force('collision', d3.forceCollide().radius(d => NODE_CFG[d.type]?.r * 2.2 || 36))
+    .on('tick', ticked);
+
+  /* Links */
+  const linkG = g.append('g').attr('class','links');
+  const link = linkG.selectAll('.link')
+    .data(data.links)
+    .join('line')
+    .attr('class', d => `link link-${d.type}`)
+    .attr('stroke',       d => LINK_CFG[d.type]?.color || '#4e5e82')
+    .attr('stroke-width', d => LINK_CFG[d.type]?.width || 1.5)
+    .attr('stroke-dasharray', d => LINK_CFG[d.type]?.dash || '')
+    .attr('marker-end', 'url(#arrow)')
+    .style('cursor','pointer')
+    .on('mouseover', (event, d) => showLinkTooltip(event, d))
+    .on('mouseout',  hideTooltip)
+    .on('click',     (event, d) => highlightLink(d));
+
+  /* Edge labels */
+  const edgeLabelG = g.append('g').attr('class','edge-labels');
+  const edgeLabel = edgeLabelG.selectAll('.link-label')
+    .data(data.links)
+    .join('text')
+    .attr('class','link-label')
+    .text(d => d.basis.length > 28 ? d.basis.substring(0,28)+'…' : d.basis)
+    .attr('text-anchor','middle')
+    .style('visibility', showEdgeLabels ? 'visible' : 'hidden');
+
+  /* Nodes */
+  const nodeG = g.append('g').attr('class','nodes');
+  const node = nodeG.selectAll('.node')
+    .data(data.nodes)
+    .join('g')
+    .attr('class', 'node')
+    .attr('id', d => 'node-' + d.id)
+    .call(d3.drag()
+      .on('start', dragstarted)
+      .on('drag',  dragged)
+      .on('end',   dragended))
+    .on('mouseover', (event, d) => showNodeTooltip(event, d))
+    .on('mouseout',  hideTooltip)
+    .on('click',     (event, d) => { event.stopPropagation(); selectNode(d); });
+
+  /* Node circles */
+  node.append('circle')
+    .attr('r', d => NODE_CFG[d.type]?.r || 18)
+    .attr('fill', d => NODE_CFG[d.type]?.color || '#4f6ef7')
+    .attr('stroke', d => NODE_CFG[d.type]?.stroke || '#7b93ff')
+    .attr('stroke-width', 2);
+
+  /* Node glow pulse for hub nodes */
+  node.filter(d => data.links.filter(l => l.source.id === d.id || l.target.id === d.id).length > 3)
+    .append('circle')
+    .attr('r', d => (NODE_CFG[d.type]?.r || 18) + 6)
+    .attr('fill','none')
+    .attr('stroke', d => NODE_CFG[d.type]?.color || '#4f6ef7')
+    .attr('stroke-width', 1)
+    .attr('stroke-opacity', 0.25)
+    .attr('class','hub-glow');
+
+  /* Node emoji icons */
+  node.append('text')
+    .attr('text-anchor','middle')
+    .attr('dy','0.4em')
+    .style('font-size', d => `${Math.round((NODE_CFG[d.type]?.r || 18) * 0.9)}px`)
+    .style('user-select','none')
+    .style('pointer-events','none')
+    .text(d => NODE_CFG[d.type]?.icon || '●');
+
+  /* Node labels */
+  const nodeLabel = node.append('text')
+    .attr('class','node-label')
+    .attr('dy', d => (NODE_CFG[d.type]?.r || 18) + 14)
+    .attr('text-anchor','middle')
+    .text(d => d.label)
+    .style('font-size','11px')
+    .style('fill','#8a9bc4')
+    .style('visibility', showLabels ? 'visible' : 'hidden');
+
+  /* Tick */
+  function ticked() {
+    link
+      .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+      .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+
+    edgeLabel
+      .attr('x', d => (d.source.x + d.target.x) / 2)
+      .attr('y', d => (d.source.y + d.target.y) / 2 - 4);
+
+    node.attr('transform', d => `translate(${d.x},${d.y})`);
+    drawMinimap(data);
+  }
+
+  /* Stats */
+  document.getElementById('stat-nodes').textContent = data.nodes.length;
+  document.getElementById('stat-edges').textContent = data.links.length;
+  const hubs = data.nodes.filter(n => data.links.filter(l => l.source.id === n.id || l.target.id === n.id || l.source === n.id || l.target === n.id).length > 3);
+  document.getElementById('stat-hubs').textContent = hubs.length;
+  document.getElementById('stat-clusters').textContent = Math.round(data.nodes.filter(n=>n.type==='accused').length / 1.5);
+
+  /* Drag handlers */
+  function dragstarted(event, d) {
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x; d.fy = d.y;
+  }
+  function dragged(event, d) {
+    d.fx = event.x; d.fy = event.y;
+  }
+  function dragended(event, d) {
+    if (!event.active) simulation.alphaTarget(0);
+    if (!pinOnDrag) { d.fx = null; d.fy = null; }
+  }
+
+  /* Controls */
+  document.getElementById('zoom-in-btn').onclick  = () => d3.select(svgEl).transition().call(zoomBehavior.scaleBy, 1.4);
+  document.getElementById('zoom-out-btn').onclick = () => d3.select(svgEl).transition().call(zoomBehavior.scaleBy, 0.7);
+  document.getElementById('zoom-fit-btn').onclick = () => fitGraph(data);
+  document.getElementById('reset-btn').onclick    = () => { data.nodes.forEach(n => { n.fx=null; n.fy=null; }); simulation.alpha(0.5).restart(); };
+  document.getElementById('pause-btn').onclick    = function() {
+    paused = !paused;
+    paused ? simulation.stop() : simulation.restart();
+    this.textContent = paused ? '▶' : '⏸';
+  };
+
+  document.getElementById('charge-slider').oninput = function() {
+    simulation.force('charge', d3.forceManyBody().strength(+this.value));
+    simulation.alpha(0.3).restart();
+  };
+
+  document.getElementById('labels-toggle').onchange = function() {
+    showLabels = this.checked;
+    d3.selectAll('.node-label').style('visibility', showLabels ? 'visible' : 'hidden');
+  };
+
+  document.getElementById('edge-labels-toggle').onchange = function() {
+    showEdgeLabels = this.checked;
+    d3.selectAll('.link-label').style('visibility', showEdgeLabels ? 'visible' : 'hidden');
+  };
+
+  document.getElementById('pin-toggle').onchange = function() { pinOnDrag = this.checked; };
+
+  /* SVG click deselect */
+  d3.select(svgEl).on('click', () => deselectNode());
+
+  /* Log */
+  AuditLog.log({ type: 'NETWORK_VIEW', detail: 'graph loaded, ' + data.nodes.length + ' nodes' });
+}
+
+/* ─── NODE DETAIL PANEL ─── */
+function selectNode(d) {
+  selectedNode = d;
+  d3.selectAll('.node circle').attr('stroke-width', 2);
+  d3.select('#node-' + d.id).select('circle').attr('stroke-width', 4);
+
+  const panel = document.getElementById('node-detail-panel');
+  panel.classList.remove('empty');
+
+  const cfg = NODE_CFG[d.type] || {};
+  const links = currentData.links.filter(l =>
+    l.source.id === d.id || l.target.id === d.id ||
+    l.source === d.id || l.target === d.id);
+
+  document.getElementById('ndp-title').textContent = d.label;
+
+  const body = document.getElementById('ndp-body');
+  body.innerHTML = `
+    <div>
+      <div class="ndp-icon" style="background:${cfg.color}22;border:1px solid ${cfg.color}44">
+        <span style="font-size:26px">${cfg.icon}</span>
+      </div>
+      <span class="badge" style="background:${cfg.color}22;color:${cfg.color};border:1px solid ${cfg.color}44;text-transform:capitalize">
+        ${d.type}
+      </span>
+    </div>
+
+    <div>
+      <div class="ndp-field-label">Label</div>
+      <div class="ndp-field-value">${d.label}</div>
+    </div>
+
+    ${d.fir ? `<div><div class="ndp-field-label">FIR Reference</div><div class="ndp-field-value"><span class="chip">${d.fir}</span></div></div>` : ''}
+    ${d.offence ? `<div><div class="ndp-field-label">Offence</div><div class="ndp-field-value">${d.offence}</div></div>` : ''}
+    ${d.station ? `<div><div class="ndp-field-label">Station</div><div class="ndp-field-value">${d.station}</div></div>` : ''}
+    ${d.role    ? `<div><div class="ndp-field-label">Role</div><div class="ndp-field-value">${d.role}</div></div>` : ''}
+    ${d.prior   ? `<div><div class="ndp-field-label">Prior FIRs</div><div class="ndp-field-value">${d.prior}</div></div>` : ''}
+    ${d.address ? `<div><div class="ndp-field-label">Address</div><div class="ndp-field-value">${d.address}</div></div>` : ''}
+    ${d.regn    ? `<div><div class="ndp-field-label">Registration</div><div class="ndp-field-value mono">${d.regn} · ${d.make}</div></div>` : ''}
+    ${d.note    ? `<div><div class="ndp-field-label">Note</div><div class="ndp-field-value">${d.note}</div></div>` : ''}
+    ${d.date    ? `<div><div class="ndp-field-label">Date Filed</div><div class="ndp-field-value mono">${d.date}</div></div>` : ''}
+
+    <div>
+      <div class="ndp-field-label">Connections (${links.length})</div>
+      <div class="ndp-connections">
+        ${links.map(l => {
+          const other = (l.source.id === d.id || l.source === d.id) ? (l.target.id || l.target) : (l.source.id || l.source);
+          const otherNode = currentData.nodes.find(n => n.id === other);
+          const lc = LINK_CFG[l.type] || {};
+          return `<div class="ndp-conn-item" onclick="selectNodeById('${other}')">
+            <span style="color:${lc.color};font-size:14px">●</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:11px;color:var(--color-text-primary)">${otherNode?.label || other}</div>
+              <div style="font-size:10px;color:var(--color-text-muted)">${l.basis}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="lead-banner" style="font-size:10px">
+      ⚠️ Named as ${d.type === 'accused' ? 'accused' : 'linked entity'} — not a conviction finding.
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+      <button class="btn btn-secondary sm" onclick="highlightNodeConnections('${d.id}')">Highlight connections</button>
+      <button class="btn btn-ghost sm" onclick="window.location.href='chat.html'">Ask Drishti about this node</button>
+    </div>
+  `;
+
+  AuditLog.log({ type: 'NODE_DETAIL_VIEW', nodeId: d.id, nodeType: d.type });
+}
+
+function deselectNode() {
+  selectedNode = null;
+  d3.selectAll('.node circle').attr('stroke-width', 2);
+  d3.selectAll('.link').classed('dimmed', false).classed('highlighted', false);
+  document.getElementById('node-detail-panel').classList.add('empty');
+}
+
+window.selectNodeById = function(id) {
+  const n = currentData.nodes.find(n => n.id === id);
+  if (n) selectNode(n);
+};
+
+window.highlightNodeConnections = function(nodeId) {
+  const linkedIds = new Set();
+  currentData.links.forEach(l => {
+    const sid = l.source.id || l.source;
+    const tid = l.target.id || l.target;
+    if (sid === nodeId || tid === nodeId) { linkedIds.add(sid); linkedIds.add(tid); }
+  });
+  d3.selectAll('.link')
+    .classed('highlighted', d => (d.source.id === nodeId || d.target.id === nodeId))
+    .classed('dimmed',      d => !(d.source.id === nodeId || d.target.id === nodeId));
+  d3.selectAll('.node').style('opacity', d => linkedIds.has(d.id) ? 1 : 0.25);
+  Toast.info('Showing connections for ' + nodeId);
+};
+
+/* ─── TOOLTIPS ─── */
+const tooltip    = document.getElementById('graph-tooltip');
+const gtTitle    = document.getElementById('gt-title');
+const gtType     = document.getElementById('gt-type');
+const gtVal      = document.getElementById('gt-val');
+const gtBasis    = document.getElementById('gt-basis');
+const gtBasisVal = document.getElementById('gt-basis-val');
+
+function showNodeTooltip(event, d) {
+  gtTitle.textContent    = d.label;
+  gtType.textContent     = 'Type';
+  gtVal.textContent      = d.type.charAt(0).toUpperCase() + d.type.slice(1);
+  gtBasis.textContent    = d.fir ? 'FIR' : (d.role ? 'Role' : '');
+  gtBasisVal.textContent = d.fir || d.role || d.address || '—';
+  positionTooltip(event);
+}
+
+function showLinkTooltip(event, d) {
+  gtTitle.textContent    = 'Edge Evidence';
+  gtType.textContent     = 'Type';
+  gtVal.textContent      = d.type;
+  gtBasis.textContent    = 'Basis';
+  gtBasisVal.textContent = d.basis;
+  positionTooltip(event);
+}
+
+function positionTooltip(event) {
+  const wrap = document.getElementById('graph-canvas-wrap').getBoundingClientRect();
+  tooltip.style.left = (event.clientX - wrap.left + 12) + 'px';
+  tooltip.style.top  = (event.clientY - wrap.top  - 40) + 'px';
+  tooltip.classList.add('visible');
+}
+
+function hideTooltip() { tooltip.classList.remove('visible'); }
+
+/* ─── LINK HIGHLIGHT ─── */
+function highlightLink(d) {
+  d3.selectAll('.link').classed('highlighted', l => l === d).classed('dimmed', l => l !== d);
+  d3.selectAll('.node').style('opacity', n => (n === d.source || n === d.target) ? 1 : 0.3);
+  Toast.info(`Edge: ${d.basis}`);
+}
+
+/* ─── MINIMAP ─── */
+function drawMinimap(data) {
+  const ms = document.getElementById('minimap-svg');
+  const msvg = d3.select(ms);
+  msvg.selectAll('.mini-node').remove();
+  if (!data.nodes.length) return;
+
+  const xs = data.nodes.map(n => n.x).filter(Boolean);
+  const ys = data.nodes.map(n => n.y).filter(Boolean);
+  if (!xs.length) return;
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const scaleX = d3.scaleLinear().domain([minX, maxX]).range([8, 152]);
+  const scaleY = d3.scaleLinear().domain([minY, maxY]).range([12, 92]);
+
+  msvg.selectAll('.mini-link').data(data.links).join('line')
+    .attr('class','mini-link').attr('stroke','rgba(79,110,247,0.3)').attr('stroke-width',0.8)
+    .attr('x1',d=>scaleX(d.source.x||0)).attr('y1',d=>scaleY(d.source.y||0))
+    .attr('x2',d=>scaleX(d.target.x||0)).attr('y2',d=>scaleY(d.target.y||0));
+
+  msvg.selectAll('.mini-node').data(data.nodes).join('circle')
+    .attr('class','mini-node').attr('r',3)
+    .attr('fill', d => NODE_CFG[d.type]?.color || '#4f6ef7')
+    .attr('cx', d => scaleX(d.x || 0)).attr('cy', d => scaleY(d.y || 0));
+}
+
+function updateMinimap() { drawMinimap(currentData); }
+
+/* ─── FIT GRAPH ─── */
+function fitGraph(data) {
+  const xs = data.nodes.map(n => n.x).filter(Boolean);
+  const ys = data.nodes.map(n => n.y).filter(Boolean);
+  if (!xs.length) return;
+  const minX = Math.min(...xs) - 60, maxX = Math.max(...xs) + 60;
+  const minY = Math.min(...ys) - 60, maxY = Math.max(...ys) + 60;
+  const scale = Math.min(width() / (maxX - minX), height() / (maxY - minY), 2) * 0.9;
+  const tx = (width() - scale * (minX + maxX)) / 2;
+  const ty = (height() - scale * (minY + maxY)) / 2;
+  d3.select(svgEl).transition().duration(600).call(
+    zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(scale)
+  );
+}
+
+/* ─── CASE SELECTOR ─── */
+document.getElementById('case-selector').addEventListener('change', function() {
+  const val = this.value;
+  let data;
+  if (val === 'all') {
+    data = JSON.parse(JSON.stringify(GRAPH_DATA.all));
+  } else {
+    const firMap = { fir2291:'FIR/2291/2026', fir0114:'FIR/0114/2025', fir0087:'FIR/0087/2026' };
+    const fir = firMap[val];
+    const relLinks = GRAPH_DATA.all.links.filter(l => l.fir === fir);
+    const relIds   = new Set(relLinks.flatMap(l => [l.source, l.target]));
+    const relNodes = GRAPH_DATA.all.nodes.filter(n => relIds.has(n.id) || (n.type === 'case' && n.fir === fir));
+    data = { nodes: JSON.parse(JSON.stringify(relNodes)), links: JSON.parse(JSON.stringify(relLinks)) };
+  }
+  currentData = data;
+  initGraph(data);
+  AuditLog.log({ type: 'NETWORK_FILTER', detail: val });
+});
+
+/* ─── GRAPH SEARCH ─── */
+document.getElementById('graph-search-btn').addEventListener('click', () => {
+  const q = document.getElementById('graph-search-input').value.toLowerCase().trim();
+  if (!q) return;
+  d3.selectAll('.node').style('opacity', d =>
+    d.label.toLowerCase().includes(q) || (d.fir||'').toLowerCase().includes(q) ? 1 : 0.15);
+  Toast.info('Search: "' + q + '" — matching nodes highlighted');
+});
+document.getElementById('graph-search-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('graph-search-btn').click();
+});
+
+/* ─── NODE FILTER ─── */
+document.querySelectorAll('.node-filter').forEach(cb => {
+  cb.addEventListener('change', () => {
+    const hidden = [...document.querySelectorAll('.node-filter:not(:checked)')].map(c => c.dataset.type);
+    d3.selectAll('.node').style('visibility', d => hidden.includes(d.type) ? 'hidden' : 'visible');
+  });
+});
+
+/* ─── FILTER PANEL TOGGLE ─── */
+document.getElementById('filter-toggle-btn').addEventListener('click', () => {
+  document.getElementById('filter-panel').classList.toggle('collapsed');
+});
+
+/* ─── NDP CLOSE ─── */
+document.getElementById('ndp-close-btn').addEventListener('click', deselectNode);
+
+/* ─── EXPORT SVG ─── */
+document.getElementById('export-svg-btn').addEventListener('click', () => {
+  const svgData = svgEl.outerHTML;
+  const blob    = new Blob([svgData], { type:'image/svg+xml' });
+  const url     = URL.createObjectURL(blob);
+  const a       = document.createElement('a');
+  a.href = url; a.download = 'drishti-network-graph.svg'; a.click();
+  URL.revokeObjectURL(url);
+  Toast.success('Graph exported as SVG');
+  AuditLog.log({ type: 'EXPORT', detail: 'network graph SVG' });
+});
+
+/* ─── DEPTH SLIDER ─── */
+document.getElementById('depth-slider').oninput = function() {
+  document.getElementById('depth-val').textContent = this.value;
+  Toast.info('Graph depth set to ' + this.value + ' (reloading…)');
+  setTimeout(() => initGraph(currentData), 300);
+};
+
+/* ─── INIT ─── */
+initGraph(currentData);
+setTimeout(() => fitGraph(currentData), 800);
+Toast.info('Network graph loaded — ' + currentData.nodes.length + ' nodes, ' + currentData.links.length + ' edges');
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Drishti — Trends & Forecast</title>
+  <meta name="description" content="Crime trend analysis and 30-day predictive forecasting for Karnataka SCRB"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/dashboard.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a href="dashboard.html" class="sidebar-logo">
+        <div class="sidebar-logo-icon">👁️</div>
+        <span class="sidebar-logo-text">Drishti</span>
+      </a>
+      <button class="sidebar-toggle" id="sidebar-toggle">◀</button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Intelligence</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span></a>
+      <a href="chat.html"      class="nav-item"><span class="nav-icon">💬</span><span class="nav-label">Chat Assistant</span></a>
+      <a href="network.html"   class="nav-item"><span class="nav-icon">🕸️</span><span class="nav-label">Network Graph</span></a>
+      <div class="nav-section-label">Analysis</div>
+      <a href="hotspot.html"   class="nav-item"><span class="nav-icon">🔥</span><span class="nav-label">Hotspot Map</span></a>
+      <a href="trends.html"    class="nav-item active"><span class="nav-icon">📈</span><span class="nav-label">Trends & Forecast</span></a>
+      <div class="nav-section-label">Records</div>
+      <a href="audit.html"     class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">Audit Trail</span></a>
+      <a href="export.html"    class="nav-item"><span class="nav-icon">📄</span><span class="nav-label">PDF Export</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="user-avatar">U</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="user-name">Officer</div>
+          <div id="user-role-label" class="badge badge-inspector">Inspector</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost sm" data-action="logout" style="width:100%;margin-top:var(--space-3)">🚪 Sign Out</button>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <!-- Topbar -->
+    <header class="topbar">
+      <span class="topbar-title">📈 Trends & Forecast</span>
+      <div class="topbar-actions">
+        <select class="input select" id="district-sel" style="font-size:var(--text-sm);padding:var(--space-1) var(--space-5) var(--space-1) var(--space-3)">
+          <option>Bengaluru Urban</option><option>Bengaluru Rural</option><option>Mysuru</option><option>Mangaluru</option>
+        </select>
+        <select class="input select" id="year-sel" style="font-size:var(--text-sm);padding:var(--space-1) var(--space-5) var(--space-1) var(--space-3)">
+          <option>2026</option><option>2025</option><option>2024</option>
+        </select>
+        <button class="btn btn-secondary sm" onclick="window.location.href='export.html'">📄 Export Report</button>
+        <button class="btn btn-ghost sm" data-action="logout">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="content-area">
+
+      <!-- Lead banner -->
+      <div class="dash-lead-banner">
+        <span>⚠️</span>
+        <span>Predictive outputs are aggregate patrol signals only — not grounds for targeting any named individual. Confidence intervals are shown.</span>
+      </div>
+
+      <!-- Header -->
+      <div class="dash-header animate-fadeUp">
+        <div>
+          <div class="dash-greeting">Bengaluru Urban · 2026 · Data window: Jan 2024 – Jun 2026</div>
+          <h1 class="dash-title">Crime Trends & 30-Day Forecast</h1>
+          <div class="dash-meta">
+            <span class="badge badge-fact">Historical (Fact)</span>
+            <span class="badge badge-inference">Trend (Inference)</span>
+            <span class="badge badge-prediction">Forecast (Prediction)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI row -->
+      <div class="metrics-row animate-fadeUp delay-1">
+        <div class="metric-card">
+          <div class="metric-icon">📈</div>
+          <div class="metric-label">Chain Snatching</div>
+          <div class="metric-value">+12%</div>
+          <div class="metric-change up">vs Q1 · 47 FIRs Q2</div>
+          <div class="alert alert-warning" style="padding:var(--space-2) var(--space-3);margin-top:var(--space-3);font-size:10px">⚠️ Forecast: ↑15% Q3</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">📉</div>
+          <div class="metric-label">Burglary</div>
+          <div class="metric-value">+8%</div>
+          <div class="metric-change up">vs Q1 · 29 FIRs Q2</div>
+          <div class="alert alert-warning" style="padding:var(--space-2) var(--space-3);margin-top:var(--space-3);font-size:10px">⚠️ Forecast: steady Q3</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">✅</div>
+          <div class="metric-label">Total Property Crime</div>
+          <div class="metric-value">142</div>
+          <div class="metric-change up">FIRs Q2 2026</div>
+          <div class="confidence-bar" style="margin-top:var(--space-3)">
+            <span class="confidence-label">Model Conf.</span>
+            <div class="confidence-track"><div class="confidence-fill high" style="width:72%"></div></div>
+            <span style="font-size:10px;color:var(--color-text-muted)">72%</span>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">🔮</div>
+          <div class="metric-label">Forecast Horizon</div>
+          <div class="metric-value">30d</div>
+          <div class="metric-change">Beat-level precision</div>
+          <div class="text-xs text-muted" style="margin-top:var(--space-3)">24 months training data</div>
+        </div>
+      </div>
+
+      <!-- Charts row 1: full-width trend -->
+      <div class="card animate-fadeUp delay-2">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Monthly FIR Trend — All Property Crimes</div>
+            <div class="card-subtitle">Jan 2025 – Jun 2026 vs Forecast Jul–Sep 2026</div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="badge badge-fact">Historical</span>
+            <span class="badge badge-prediction">Forecast (dashed)</span>
+          </div>
+        </div>
+        <div style="height:260px; padding:var(--space-2) 0">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Charts row 2: 3 side by side -->
+      <div class="grid-3 animate-fadeUp delay-3">
+
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Day-of-Week Pattern</div><div class="card-subtitle">Avg. incidents by day</div></div>
+            <span class="badge badge-inference">Inference</span>
+          </div>
+          <div style="height:180px"><canvas id="dowChart"></canvas></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Time-of-Day Heatmap</div><div class="card-subtitle">Hour vs. crime volume</div></div>
+            <span class="badge badge-inference">Inference</span>
+          </div>
+          <div style="height:180px"><canvas id="todChart"></canvas></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Crime Type Breakdown</div><div class="card-subtitle">Q2 2026</div></div>
+            <span class="badge badge-fact">Fact</span>
+          </div>
+          <div style="height:180px"><canvas id="typeChart"></canvas></div>
+        </div>
+
+      </div>
+
+      <!-- Beat-level forecast table -->
+      <div class="card animate-fadeUp delay-4">
+        <div class="card-header">
+          <div>
+            <div class="card-title">🔮 Beat-Level 30-Day Forecast</div>
+            <div class="card-subtitle">Ranked by predicted risk · Patrol signals only</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="badge badge-prediction">Prediction</span>
+            <button class="btn btn-ghost sm" onclick="window.location.href='export.html'">Export</button>
+          </div>
+        </div>
+        <div class="table-wrapper" style="border:none;border-radius:0">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Beat / Area</th>
+                <th>Crime Type</th>
+                <th>Predicted Incidents</th>
+                <th>Confidence</th>
+                <th>Peak Window</th>
+                <th>Risk</th>
+                <th>Patrol Signal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-primary font-semibold">Jayanagar 4th Block</td>
+                <td>Chain Snatching</td>
+                <td><span class="mono">8–12</span></td>
+                <td>
+                  <div class="confidence-bar"><div class="confidence-track"><div class="confidence-fill high" style="width:78%"></div></div><span class="mono text-muted" style="font-size:10px">78%</span></div>
+                </td>
+                <td class="mono">6–9 PM</td>
+                <td><span class="badge badge-alert no-dot">HIGH</span></td>
+                <td class="text-xs text-muted">Increase foot patrol</td>
+              </tr>
+              <tr>
+                <td class="text-primary font-semibold">JP Nagar 6th Phase</td>
+                <td>Chain Snatching</td>
+                <td><span class="mono">6–9</span></td>
+                <td>
+                  <div class="confidence-bar"><div class="confidence-track"><div class="confidence-fill medium" style="width:72%"></div></div><span class="mono text-muted" style="font-size:10px">72%</span></div>
+                </td>
+                <td class="mono">7–10 PM</td>
+                <td><span class="badge badge-alert no-dot">HIGH</span></td>
+                <td class="text-xs text-muted">Deploy PCR van</td>
+              </tr>
+              <tr>
+                <td class="text-primary font-semibold">Koramangala 1B</td>
+                <td>Robbery</td>
+                <td><span class="mono">4–6</span></td>
+                <td>
+                  <div class="confidence-bar"><div class="confidence-track"><div class="confidence-fill medium" style="width:58%"></div></div><span class="mono text-muted" style="font-size:10px">58%</span></div>
+                </td>
+                <td class="mono">8–11 PM</td>
+                <td><span class="badge badge-pending no-dot">MEDIUM</span></td>
+                <td class="text-xs text-muted">Monitor, CCTV audit</td>
+              </tr>
+              <tr>
+                <td class="text-primary font-semibold">MG Road</td>
+                <td>Theft / Pickpocketing</td>
+                <td><span class="mono">5–8</span></td>
+                <td>
+                  <div class="confidence-bar"><div class="confidence-track"><div class="confidence-fill medium" style="width:55%"></div></div><span class="mono text-muted" style="font-size:10px">55%</span></div>
+                </td>
+                <td class="mono">12–4 PM</td>
+                <td><span class="badge badge-pending no-dot">MEDIUM</span></td>
+                <td class="text-xs text-muted">Plain-clothes patrol</td>
+              </tr>
+              <tr>
+                <td class="text-primary font-semibold">Yelahanka New Town</td>
+                <td>Vehicle Theft</td>
+                <td><span class="mono">3–5</span></td>
+                <td>
+                  <div class="confidence-bar"><div class="confidence-track"><div class="confidence-fill low" style="width:42%"></div></div><span class="mono text-muted" style="font-size:10px">42%</span></div>
+                </td>
+                <td class="mono">10 PM–2 AM</td>
+                <td><span class="badge badge-closed no-dot">LOW</span></td>
+                <td class="text-xs text-muted">Routine patrol</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="alert alert-warning" style="margin:var(--space-4) var(--space-5);font-size:var(--text-xs)">
+          <span class="alert-icon">⚠️</span>
+          These are aggregate patrol signals derived from historical patterns. Not grounds for search, detention, or action against any named individual.
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+(function(){
+'use strict';
+const { Session, RBAC, AuditLog, Toast, ROLES } = window.Drishti;
+if (!RBAC.requireLogin()) return;
+const session  = Session.load();
+const roleData = ROLES[session?.role] || {};
+const av = document.getElementById('user-avatar');
+if(av){av.textContent=(session.userName||'U')[0];av.style.background=`linear-gradient(135deg,${roleData.color}55,${roleData.color})`;}
+document.getElementById('user-name').textContent = session.userName;
+const rl = document.getElementById('user-role-label');
+rl.textContent = roleData.label; rl.className = `badge ${roleData.badge}`;
+document.querySelectorAll('[data-action="logout"]').forEach(el=>el.addEventListener('click',()=>{AuditLog.log({type:'LOGOUT'});Session.clear();window.location.href='index.html';}));
+document.getElementById('sidebar-toggle').addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('collapsed'));
+
+Chart.defaults.color = '#8a9bc4';
+Chart.defaults.borderColor = 'rgba(79,110,247,0.10)';
+Chart.defaults.font.family = 'Inter, sans-serif';
+
+/* ─── TREND CHART ─── */
+const monthsHist = ['Jan 25','Feb 25','Mar 25','Apr 25','May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26','May 26','Jun 26'];
+const monthsFore = ['Jul 26','Aug 26','Sep 26'];
+const histData   = [98,104,110,115,108,112,122,118,126,130,119,115,120,127,132,138,140,142];
+const foreData   = [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,142,155,162,158];
+
+new Chart(document.getElementById('trendChart'),{
+  type:'line',
+  data:{
+    labels:[...monthsHist,...monthsFore],
+    datasets:[
+      { label:'Historical FIRs', data:[...histData,...new Array(3).fill(null)], borderColor:'#4f6ef7', backgroundColor:'rgba(79,110,247,0.10)', borderWidth:2.5, tension:0.35, fill:true, pointRadius:3, pointHoverRadius:5 },
+      { label:'Forecast',        data:foreData,  borderColor:'#a78bfa', backgroundColor:'rgba(167,139,250,0.08)', borderWidth:2, borderDash:[7,4], tension:0.35, fill:true, pointRadius:4, pointHoverRadius:6 },
+      { label:'Upper CI 90%',    data:[...new Array(18).fill(null),168,178,175], borderColor:'rgba(167,139,250,0.3)', borderWidth:1, borderDash:[3,3], pointRadius:0, fill:false },
+      { label:'Lower CI 90%',    data:[...new Array(18).fill(null),142,148,143], borderColor:'rgba(167,139,250,0.3)', borderWidth:1, borderDash:[3,3], pointRadius:0, fill:'-1', backgroundColor:'rgba(167,139,250,0.06)' },
+    ],
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{ display:true, labels:{boxWidth:10,padding:12} },
+      tooltip:{ mode:'index', intersect:false },
+    },
+    scales:{
+      x:{grid:{color:'rgba(79,110,247,0.06)'}, ticks:{font:{size:10}}},
+      y:{grid:{color:'rgba(79,110,247,0.06)'}, ticks:{font:{size:10}}, title:{display:true,text:'FIR Count',font:{size:10}}},
+    },
+  },
+});
+
+/* ─── DAY OF WEEK ─── */
+new Chart(document.getElementById('dowChart'),{
+  type:'bar',
+  data:{
+    labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    datasets:[{ label:'Avg. Incidents', data:[16,18,15,21,24,20,8], backgroundColor:['rgba(79,110,247,0.7)','rgba(79,110,247,0.7)','rgba(79,110,247,0.7)','rgba(79,110,247,0.7)','rgba(242,92,92,0.85)','rgba(242,92,92,0.7)','rgba(79,110,247,0.4)'], borderRadius:4 }],
+  },
+  options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{grid:{display:false},ticks:{font:{size:9}}}, y:{grid:{color:'rgba(79,110,247,0.08)'},ticks:{font:{size:9}}}} },
+});
+
+/* ─── TIME OF DAY ─── */
+const todData = Array.from({length:24},(_,i)=>({hour:i,val:[0,0,0,1,0,0,2,3,5,8,9,11,14,13,12,14,18,22,20,16,12,10,7,4][i]}));
+new Chart(document.getElementById('todChart'),{
+  type:'line',
+  data:{
+    labels:todData.map(d=>d.hour+':00'),
+    datasets:[{ label:'Incidents', data:todData.map(d=>d.val), fill:true, backgroundColor:'rgba(242,92,92,0.15)', borderColor:'#f25c5c', borderWidth:2, tension:0.4, pointRadius:0 }],
+  },
+  options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{grid:{display:false},ticks:{font:{size:8},maxRotation:0,autoSkip:true,maxTicksLimit:6}}, y:{grid:{color:'rgba(79,110,247,0.08)'},ticks:{font:{size:9}}}} },
+});
+
+/* ─── CRIME TYPE PIE ─── */
+new Chart(document.getElementById('typeChart'),{
+  type:'doughnut',
+  data:{
+    labels:['Chain Snatching','Burglary','Robbery','Theft','Vehicle Theft'],
+    datasets:[{ data:[47,29,18,34,14], backgroundColor:['#f25c5c','#4f6ef7','#f5a623','#22c97a','#a78bfa'], borderWidth:0, hoverOffset:6 }],
+  },
+  options:{ responsive:true, maintainAspectRatio:false, cutout:'65%', plugins:{legend:{position:'right',labels:{boxWidth:9,padding:7,font:{size:9}}}} },
+});
+
+AuditLog.log({type:'PAGE_VIEW',detail:'trends.html'});
+Toast.info('Trend analysis loaded — Bengaluru Urban, 2026');
+})();
+</script>
+</body>
+</html>

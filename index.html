@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Drishti — SCRB Crime Intelligence · Sign In</title>
+  <meta name="description" content="Secure sign-in portal for Karnataka SCRB Crime Intelligence Assistant" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <style>
+    body {
+      overflow-x: hidden;
+      overflow-y: auto;
+      min-height: 100vh;
+    }
+
+    .login-wrap {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    @media (max-width: 900px) {
+      .login-wrap { grid-template-columns: 1fr; }
+      .login-panel { display: none; }
+    }
+
+    /* ── Left decorative panel ── */
+    .login-panel {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-12);
+      background: linear-gradient(160deg, #070c19 0%, #0c1630 45%, #101c40 100%);
+    }
+
+    .panel-bg {
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(ellipse 70% 55% at 30% 40%, rgba(79,110,247,0.14) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 45% at 75% 70%, rgba(167,139,250,0.10) 0%, transparent 55%),
+        repeating-linear-gradient(
+          55deg,
+          rgba(79,110,247,0.022) 0px, rgba(79,110,247,0.022) 1px,
+          transparent 1px, transparent 36px
+        );
+    }
+
+    /* Hexagonal circuit lines */
+    .panel-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 15% 85%, rgba(34,201,122,0.06) 0%, transparent 40%);
+    }
+
+    .panel-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-6);
+    }
+
+    .panel-logo-wrap { position: relative; display: inline-flex; }
+
+    .panel-logo {
+      width: 108px;
+      height: 108px;
+      background: linear-gradient(145deg, rgba(79,110,247,0.22), rgba(167,139,250,0.18));
+      border: 1px solid rgba(79,110,247,0.38);
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 56px;
+      box-shadow:
+        0 0 60px rgba(79,110,247,0.22),
+        0 0 120px rgba(79,110,247,0.10),
+        inset 0 1px 0 rgba(255,255,255,0.08);
+      animation: glow-pulse 3.5s ease-in-out infinite;
+    }
+
+    .panel-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(79,110,247,0.14);
+      animation: spin 25s linear infinite;
+    }
+    .panel-ring:nth-child(1) { inset: -22px; }
+    .panel-ring:nth-child(2) { inset: -42px; border-color: rgba(167,139,250,0.08); animation-duration: 35s; animation-direction: reverse; }
+    .panel-ring:nth-child(3) { inset: -62px; border-color: rgba(79,110,247,0.05); animation-duration: 50s; }
+
+    .panel-title {
+      font-size: clamp(3rem, 5vw, 4rem);
+      font-weight: var(--weight-black);
+      background: linear-gradient(135deg, #e8edf8 20%, #7b93ff 60%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    .panel-scripts {
+      font-size: var(--text-base);
+      color: var(--color-text-muted);
+      letter-spacing: 0.05em;
+      margin-top: var(--space-1);
+    }
+
+    .panel-sub {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      max-width: 300px;
+      line-height: var(--leading-relaxed);
+    }
+
+    /* Floating data nodes */
+    .fn {
+      position: absolute;
+      padding: var(--space-2) var(--space-3);
+      background: rgba(10,16,30,0.88);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      font-size: var(--text-xs);
+      color: var(--color-text-secondary);
+      font-family: var(--font-mono);
+      backdrop-filter: blur(10px);
+      white-space: nowrap;
+      box-shadow: var(--shadow-xl);
+      z-index: 2;
+    }
+
+    .fn-1 { top: 14%; left: 6%;  animation: fadeUp 0.7s 0.2s both, floatA 6s 1s ease-in-out infinite; }
+    .fn-2 { top: 25%; right: 5%; animation: fadeUp 0.7s 0.4s both, floatB 7s 1s ease-in-out infinite; }
+    .fn-3 { top: 46%; left: 4%; animation: fadeUp 0.7s 0.6s both, floatA 8s 1.2s ease-in-out infinite; }
+    .fn-4 { bottom: 30%; right: 6%; animation: fadeUp 0.7s 0.8s both, floatB 5.5s 1s ease-in-out infinite; }
+    .fn-5 { bottom: 15%; left: 8%; animation: fadeUp 0.7s 1.0s both, floatA 7s 0.8s ease-in-out infinite; }
+
+    @keyframes floatA { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    @keyframes floatB { 0%,100%{transform:translateY(0)} 50%{transform:translateY(7px)} }
+
+    .stats-row {
+      position: absolute;
+      bottom: var(--space-8);
+      left: 0; right: 0;
+      display: flex;
+      justify-content: center;
+      gap: var(--space-10);
+      z-index: 2;
+    }
+
+    .stat-item { text-align: center; }
+    .stat-val {
+      font-size: var(--text-2xl);
+      font-weight: var(--weight-bold);
+      color: var(--color-text-primary);
+      line-height: 1;
+    }
+    .stat-lbl { font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--space-1); }
+
+    /* ── Right form panel ── */
+    .login-form-wrap {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding: var(--space-8) var(--space-8);
+      overflow-y: auto;
+      min-height: 100vh;
+      background: var(--color-bg-surface);
+    }
+
+    .login-form-inner {
+      width: 100%;
+      max-width: 460px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-5);
+      margin: auto 0;
+    }
+
+    .login-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .app-version {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* Role grid */
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-3);
+    }
+
+    @media (max-width: 480px) { .role-grid { grid-template-columns: 1fr 1fr; } }
+
+    .role-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-4) var(--space-3);
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-xl);
+      cursor: pointer;
+      transition: all var(--duration-base) var(--ease-out);
+      text-align: center;
+      user-select: none;
+    }
+    .role-card:hover {
+      background: var(--color-bg-overlay);
+      border-color: var(--color-border);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .role-card.selected {
+      border-color: var(--rc, var(--color-accent-primary));
+      background: var(--rb, rgba(79,110,247,0.08));
+      box-shadow: 0 0 0 1px var(--rc, var(--color-accent-primary)), 0 6px 24px rgba(0,0,0,0.3);
+    }
+
+    .role-icon  { font-size: 28px; line-height: 1; }
+    .role-name  { font-size: 11px; font-weight: var(--weight-semibold); color: var(--color-text-primary); line-height: 1.3; }
+    .role-clr   { font-size: 10px; color: var(--color-text-muted); }
+
+    .role-check {
+      position: absolute;
+      top: 6px; right: 6px;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--rc, var(--color-accent-primary));
+      color: #fff;
+      font-size: 10px;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transform: scale(0);
+      transition: all var(--duration-base) var(--ease-spring);
+    }
+    .role-card.selected .role-check { opacity: 1; transform: scale(1); }
+
+    /* Clearance preview */
+    .clearance-preview {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-lg);
+      min-height: 52px;
+      transition: all var(--duration-base) var(--ease-out);
+    }
+    .clearance-preview.active {
+      border-color: var(--rcp, var(--color-accent-primary));
+      background: var(--rcpb, rgba(79,110,247,0.05));
+    }
+
+    /* CTA button */
+    .login-btn {
+      width: 100%;
+      padding: var(--space-4);
+      font-size: var(--text-md);
+      font-weight: var(--weight-semibold);
+      border-radius: var(--radius-xl);
+    }
+
+    .login-notice {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      background: rgba(79,110,247,0.05);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-md);
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      line-height: var(--leading-relaxed);
+    }
+
+    /* Loading overlay */
+    .login-loading {
+      position: fixed;
+      inset: 0;
+      background: rgba(8,13,26,0.96);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-6);
+      z-index: var(--z-modal);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .login-loading.show { opacity: 1; pointer-events: all; }
+
+    .loading-steps {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      font-size: var(--text-xs);
+      font-family: var(--font-mono);
+    }
+
+    .ls {
+      display: flex; align-items: center; gap: var(--space-2);
+      color: var(--color-text-muted);
+      opacity: 0; transform: translateX(-8px);
+      transition: all 0.35s var(--ease-out);
+    }
+    .ls.done { opacity: 1; transform: translateX(0); color: var(--color-success); }
+  </style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div class="login-loading" id="loading-overlay">
+  <div style="font-size:48px">👁️</div>
+  <div class="loader lg"></div>
+  <div style="font-size:var(--text-sm); color:var(--color-text-secondary);" id="loading-msg">Authenticating…</div>
+  <div class="loading-steps">
+    <div class="ls" id="ls1">✓ Identity verified</div>
+    <div class="ls" id="ls2">✓ Clearance loaded</div>
+    <div class="ls" id="ls3">✓ Secure session created</div>
+    <div class="ls" id="ls4">✓ Audit trail started</div>
+  </div>
+</div>
+
+<div class="login-wrap">
+
+  <!-- ── LEFT PANEL ── -->
+  <aside class="login-panel" aria-hidden="true">
+    <div class="panel-bg"></div>
+
+    <!-- Floating nodes -->
+    <div class="fn fn-1">📋 FIR/2291/2026 · Jayanagar PS</div>
+    <div class="fn fn-2">🕸️ Network · 3 links · Co-accused</div>
+    <div class="fn fn-3">🔥 Hotspot · JP Nagar · 78% conf.</div>
+    <div class="fn fn-4">🔒 Audit · AL-X9K2M · Logged</div>
+    <div class="fn fn-5">⚡ Trend ↑12% · Chain-snatching</div>
+
+    <div class="panel-content">
+      <div class="panel-logo-wrap">
+        <div class="panel-ring"></div>
+        <div class="panel-ring"></div>
+        <div class="panel-ring"></div>
+        <div class="panel-logo">👁️</div>
+      </div>
+
+      <div>
+        <div class="panel-title">Drishti</div>
+        <div class="panel-scripts">ದೃಷ್ಟಿ &nbsp;·&nbsp; दृष्टि &nbsp;·&nbsp; Vision</div>
+      </div>
+
+      <p class="panel-sub">
+        Karnataka State Crime Records Bureau —
+        intelligent crime analysis across 1,100+ police stations in 3 languages.
+      </p>
+
+      <div class="flex gap-3 justify-center flex-wrap">
+        <span class="badge badge-fact">Fact</span>
+        <span class="badge badge-inference">Inference</span>
+        <span class="badge badge-prediction">Prediction</span>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-item"><div class="stat-val">1,100+</div><div class="stat-lbl">Police Stations</div></div>
+      <div class="stat-item"><div class="stat-val">30</div><div class="stat-lbl">Districts</div></div>
+      <div class="stat-item"><div class="stat-val">3</div><div class="stat-lbl">Languages</div></div>
+    </div>
+  </aside>
+
+  <!-- ── RIGHT FORM PANEL ── -->
+  <main class="login-form-wrap">
+    <div class="login-form-inner animate-fadeUp">
+
+      <!-- Top bar: language + version -->
+      <div class="login-top-bar">
+        <div class="lang-selector">
+          <button class="lang-btn active" data-lang="en" id="lang-en">EN</button>
+          <button class="lang-btn" data-lang="kn" id="lang-kn">ಕನ್ನಡ</button>
+          <button class="lang-btn" data-lang="hi" id="lang-hi">हिंदी</button>
+        </div>
+        <span class="app-version">Drishti v2.0 · SCRB</span>
+      </div>
+
+      <!-- Header -->
+      <div>
+        <h1 style="font-size:var(--text-3xl); font-weight:var(--weight-bold); line-height:1.2;" id="login-title">Welcome back</h1>
+        <p class="text-secondary mt-2" id="login-subtitle">Karnataka SCRB Crime Intelligence Assistant</p>
+      </div>
+
+      <!-- Officer Name -->
+      <div class="form-group">
+        <label class="label" for="officer-name" id="name-label">Officer Name</label>
+        <div class="input-group">
+          <span class="input-icon">👤</span>
+          <input
+            type="text"
+            id="officer-name"
+            class="input"
+            placeholder="Enter your full name"
+            autocomplete="name"
+            maxlength="80"
+          />
+        </div>
+      </div>
+
+      <!-- Role Selection -->
+      <div class="form-group">
+        <label class="label" id="role-label">Select your role to continue</label>
+        <div class="role-grid" id="role-grid" role="radiogroup" aria-label="Role selection"></div>
+      </div>
+
+      <!-- Jurisdiction -->
+      <div class="form-group">
+        <label class="label" for="jx-select" id="jx-label">Select Jurisdiction</label>
+        <div class="input-group">
+          <span class="input-icon">📍</span>
+          <select class="input select" id="jx-select" style="padding-left:2.5rem"></select>
+        </div>
+      </div>
+
+      <!-- Clearance preview -->
+      <div class="clearance-preview" id="clr-preview">
+        <span class="text-muted text-sm" id="clr-placeholder">Clearance level will appear after role selection</span>
+      </div>
+
+      <!-- CTA -->
+      <button class="btn btn-primary login-btn" id="login-btn" disabled>
+        <span id="login-btn-text">Access Drishti Intelligence</span>
+        <span style="font-size:16px">→</span>
+      </button>
+
+      <!-- Notice -->
+      <div class="login-notice">
+        <span>🔒</span>
+        <span id="notice-text">All queries are logged and audited per DPDPA 2023 compliance. Unauthorised access is a criminal offence.</span>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="js/app.js"></script>
+<script>
+(function () {
+  'use strict';
+  const D = window.Drishti;
+  const { Session, AuditLog, ROLES, JURISDICTIONS, STRINGS } = D;
+
+  // Already logged in? Go straight to dashboard
+  if (Session.isValid()) { window.location.href = 'dashboard.html'; return; }
+
+  let currentLang = 'en';
+  let selectedRole = null;
+
+  /* ── Language switching ── */
+  const L = {
+    en: {
+      welcome:  'Welcome back',
+      subtitle: 'Karnataka SCRB Crime Intelligence Assistant',
+      nameLbl:  'Officer Name / अधिकारी का नाम / ಅಧಿಕಾರಿ ಹೆಸರು',
+      roleLbl:  'Select your role to continue',
+      jxLbl:    'Select Jurisdiction',
+      jxPH:    '— Choose district —',
+      clrPH:   'Clearance level will appear after role selection',
+      loginBtn: 'Access Drishti Intelligence',
+      notice:   'All queries are logged and audited per DPDPA 2023 compliance. Unauthorised access is a criminal offence.',
+      namePH:   'Enter your full name',
+    },
+    kn: {
+      welcome:  'ಮರಳಿ ಸ್ವಾಗತ',
+      subtitle: 'ಕರ್ನಾಟಕ SCRB ಅಪರಾಧ ಗುಪ್ತಚರ ಸಹಾಯಕ',
+      nameLbl:  'ಅಧಿಕಾರಿ ಹೆಸರು',
+      roleLbl:  'ಮುಂದುವರಿಯಲು ನಿಮ್ಮ ಪಾತ್ರ ಆಯ್ಕೆ ಮಾಡಿ',
+      jxLbl:    'ನ್ಯಾಯವ್ಯಾಪ್ತಿ ಆಯ್ಕೆ ಮಾಡಿ',
+      jxPH:    '— ಜಿಲ್ಲೆ ಆಯ್ಕೆ ಮಾಡಿ —',
+      clrPH:   'ಪಾತ್ರ ಆಯ್ಕೆ ಮಾಡಿದ ನಂತರ ಮಂಜೂರಾತಿ ಮಟ್ಟ ಕಾಣಿಸುತ್ತದೆ',
+      loginBtn: 'ದೃಷ್ಟಿ ಪ್ರವೇಶಿಸಿ',
+      notice:   'ಎಲ್ಲಾ ಪ್ರಶ್ನೆಗಳು DPDPA 2023 ಅನ್ವಯ ದಾಖಲಿಸಲ್ಪಡುತ್ತವೆ. ಅನಧಿಕೃತ ಪ್ರವೇಶ ಅಪರಾಧ.',
+      namePH:  'ನಿಮ್ಮ ಪೂರ್ಣ ಹೆಸರು ನಮೂದಿಸಿ',
+    },
+    hi: {
+      welcome:  'वापस स्वागत है',
+      subtitle: 'कर्नाटक SCRB अपराध आसूचना सहायक',
+      nameLbl:  'अधिकारी का नाम',
+      roleLbl:  'जारी रखने के लिए अपनी भूमिका चुनें',
+      jxLbl:    'अधिकार क्षेत्र चुनें',
+      jxPH:    '— जिला चुनें —',
+      clrPH:   'भूमिका चुनने के बाद मंजूरी स्तर दिखाई देगा',
+      loginBtn: 'दृष्टि में प्रवेश करें',
+      notice:   'सभी प्रश्न DPDPA 2023 अनुपालन के अनुसार लॉग किए जाते हैं। अनाधिकृत पहुँच आपराधिक अपराध है।',
+      namePH:  'अपना पूरा नाम दर्ज करें',
+    },
+  };
+
+  const JX_LABEL = {
+    en: j => j.label,
+    kn: j => j.labelKn || j.label,
+    hi: j => j.labelHi || j.label,
+  };
+
+  const ROLE_LABEL = {
+    en: (r) => r.label,
+    kn: (r) => r.labelKn || r.label,
+    hi: (r) => r.labelHi || r.label,
+  };
+
+  function applyLang() {
+    const s = L[currentLang];
+    document.documentElement.lang = currentLang;
+    document.getElementById('login-title').textContent   = s.welcome;
+    document.getElementById('login-subtitle').textContent= s.subtitle;
+    document.getElementById('name-label').textContent    = s.nameLbl;
+    document.getElementById('role-label').textContent    = s.roleLbl;
+    document.getElementById('jx-label').textContent      = s.jxLbl;
+    document.getElementById('login-btn-text').textContent= s.loginBtn;
+    document.getElementById('notice-text').textContent   = s.notice;
+    document.getElementById('officer-name').placeholder  = s.namePH;
+    if (!selectedRole) document.getElementById('clr-placeholder').textContent = s.clrPH;
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === currentLang));
+    populateJurisdictions();
+    buildRoleGrid();
+  }
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => { currentLang = btn.dataset.lang; applyLang(); });
+  });
+
+  /* ── Role grid ── */
+  function buildRoleGrid() {
+    const grid = document.getElementById('role-grid');
+    grid.innerHTML = '';
+    Object.entries(ROLES).forEach(([key, role]) => {
+      const label = ROLE_LABEL[currentLang](role);
+      const card = document.createElement('div');
+      card.className = 'role-card' + (selectedRole === key ? ' selected' : '');
+      card.dataset.role = key;
+      card.setAttribute('role', 'radio');
+      card.setAttribute('aria-checked', String(selectedRole === key));
+      card.setAttribute('tabindex', '0');
+      card.style.cssText = `--rc:${role.color}; --rb:${role.color}18;`;
+      card.innerHTML = `
+        <div class="role-check">✓</div>
+        <div class="role-icon">${role.icon}</div>
+        <div class="role-name">${label}</div>
+        <div class="role-clr">${role.clearance}</div>
+      `;
+      card.addEventListener('click', () => pickRole(key));
+      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickRole(key); }});
+      grid.appendChild(card);
+    });
+  }
+
+  function pickRole(key) {
+    selectedRole = key;
+    buildRoleGrid();
+    updateClearancePreview();
+    validateForm();
+  }
+
+  /* ── Clearance preview ── */
+  function updateClearancePreview() {
+    const preview = document.getElementById('clr-preview');
+    const clrBadgeClass = { L1: 'clearance-L1', L2: 'clearance-L2', L3: 'clearance-L3', L4: 'clearance-L4' };
+    if (!selectedRole) {
+      preview.classList.remove('active');
+      preview.style.cssText = '';
+      preview.innerHTML = `<span class="text-muted text-sm">${L[currentLang].clrPH}</span>`;
+      return;
+    }
+    const role = ROLES[selectedRole];
+    const label = ROLE_LABEL[currentLang](role);
+    preview.classList.add('active');
+    preview.style.cssText = `--rcp:${role.color}; --rcpb:${role.color}10;`;
+    preview.innerHTML = `
+      <div class="flex items-center gap-3">
+        <span style="font-size:22px">${role.icon}</span>
+        <div>
+          <div class="text-sm font-semibold text-primary">${label}</div>
+          <div class="text-xs text-muted">Clearance auto-assigned</div>
+        </div>
+      </div>
+      <span class="clearance-badge ${clrBadgeClass[role.clearance]}">${role.clearance}</span>
+    `;
+  }
+
+  /* ── Jurisdiction dropdown ── */
+  function populateJurisdictions() {
+    const sel = document.getElementById('jx-select');
+    const cur = sel.value;
+    const ph  = L[currentLang].jxPH;
+    sel.innerHTML = `<option value="">${ph}</option>`;
+    JURISDICTIONS.forEach(j => {
+      const opt = document.createElement('option');
+      opt.value = j.id;
+      opt.textContent = JX_LABEL[currentLang](j);
+      if (opt.value === cur) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  /* ── Validation ── */
+  const nameInput = document.getElementById('officer-name');
+  const jxSelect  = document.getElementById('jx-select');
+  const loginBtn  = document.getElementById('login-btn');
+
+  function validateForm() {
+    loginBtn.disabled = !(nameInput.value.trim().length > 2 && selectedRole && jxSelect.value);
+  }
+  nameInput.addEventListener('input', validateForm);
+  jxSelect.addEventListener('change', validateForm);
+
+  /* ── Login flow ── */
+  loginBtn.addEventListener('click', () => {
+    const name = nameInput.value.trim();
+    if (!name || !selectedRole || !jxSelect.value) return;
+
+    const overlay = document.getElementById('loading-overlay');
+    const msg     = document.getElementById('loading-msg');
+    overlay.classList.add('show');
+
+    const steps = ['ls1','ls2','ls3','ls4'];
+    const msgs  = ['Verifying officer identity…','Loading clearance level…','Creating secure session…','Starting audit trail…'];
+
+    steps.forEach((id, i) => {
+      setTimeout(() => {
+        msg.textContent = msgs[i];
+        document.getElementById(id).classList.add('done');
+      }, 450 * (i + 1));
+    });
+
+    setTimeout(() => {
+      Session.save({
+        userName:     name,
+        role:         selectedRole,
+        jurisdiction: jxSelect.value,
+        clearance:    ROLES[selectedRole].clearance,
+        lang:         currentLang,
+      });
+      AuditLog.log({ type: 'LOGIN', detail: `${name} signed in as ${selectedRole}` });
+      window.location.href = 'dashboard.html';
+    }, 2400);
+  });
+
+  /* ── Init ── */
+  buildRoleGrid();
+  populateJurisdictions();
+})();
+</script>
+</body>
+</html>

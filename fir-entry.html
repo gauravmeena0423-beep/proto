@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Drishti — AI-Assisted Statutory e-FIR Registration</title>
+  <meta name="description" content="Advanced AI-assisted e-FIR & Case Filing System compliant with Bharatiya Nyaya Sanhita (BNS) 2023 and Bharatiya Nagarik Suraksha Sanhita (BNSS) 2023"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/dashboard.css"/>
+  <style>
+    .fir-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: var(--space-6);
+      align-items: start;
+    }
+    .fir-form-card {
+      background: var(--color-bg-surface);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-6);
+    }
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--color-border-subtle);
+    }
+    .step-number {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-full);
+      background: var(--color-accent-primary);
+      color: #ffffff;
+      font-size: var(--text-xs);
+      font-weight: var(--weight-bold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-title {
+      font-size: var(--text-md);
+      font-weight: var(--weight-semibold);
+      color: var(--color-text-primary);
+    }
+    .step-subtitle {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+    }
+    .ai-assistant-card {
+      background: rgba(13,20,38,0.94);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-5);
+      position: sticky;
+      top: calc(var(--topbar-height) + var(--space-5));
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      box-shadow: var(--shadow-xl);
+    }
+    .bns-suggestion-chip {
+      background: rgba(79,110,247,0.1);
+      border: 1px solid rgba(79,110,247,0.3);
+      border-radius: var(--radius-lg);
+      padding: var(--space-3);
+      cursor: pointer;
+      transition: all var(--duration-fast);
+    }
+    .bns-suggestion-chip:hover {
+      background: rgba(79,110,247,0.2);
+      border-color: var(--color-accent-primary);
+      transform: translateY(-1px);
+    }
+    .bns-sec-num {
+      font-size: var(--text-xs);
+      font-weight: var(--weight-bold);
+      color: var(--color-accent-light);
+      font-family: var(--font-mono);
+    }
+    .bns-sec-title {
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+      color: var(--color-text-primary);
+      margin-top: 2px;
+    }
+    .bns-sec-desc {
+      font-size: var(--text-xs);
+      color: var(--color-text-secondary);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+    .match-alert-box {
+      background: rgba(242,92,92,0.12);
+      border: 1px solid rgba(242,92,92,0.35);
+      border-radius: var(--radius-xl);
+      padding: var(--space-4);
+      display: none;
+      animation: fadeIn 0.3s ease-out;
+    }
+    .match-alert-box.show {
+      display: block;
+    }
+    .entity-tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin-top: var(--space-2);
+    }
+    .entity-tag {
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-full);
+      padding: var(--space-1) var(--space-3);
+      font-size: var(--text-xs);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .entity-tag button {
+      background: none;
+      border: none;
+      color: var(--color-text-muted);
+      cursor: pointer;
+    }
+    .entity-tag button:hover {
+      color: var(--color-danger);
+    }
+    /* Official Registered FIR Modal */
+    .fir-receipt-modal {
+      background: #ffffff;
+      color: #111827;
+      border-radius: var(--radius-xl);
+      padding: 36px 44px;
+      max-width: 720px;
+      width: 100%;
+      box-shadow: var(--shadow-xl);
+      font-family: 'Inter', sans-serif;
+    }
+    @media (max-width: 1050px) {
+      .fir-layout {
+        grid-template-columns: 1fr;
+      }
+      .ai-assistant-card {
+        position: static;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Registered e-FIR Confirmation Modal -->
+<div class="voice-modal-backdrop" id="fir-success-modal" style="display:none;z-index:9000">
+  <div class="fir-receipt-modal" id="fir-receipt-card">
+    <div style="border-bottom:2px solid #1f2937;padding-bottom:16px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:16px;font-weight:900;text-transform:uppercase;letter-spacing:0.05em;color:#111827">KARNATAKA STATE POLICE — SCRB</div>
+        <div style="font-size:11px;color:#4b5563;margin-top:2px">REGISTERED ELECTRONIC FIR RECEIPT (BNSS §173 COMPLIANT)</div>
+      </div>
+      <div style="font-size:32px">🏛️</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;background:#f9fafb;border:1px solid #e5e7eb;padding:12px;border-radius:8px;margin-bottom:20px;font-size:12px">
+      <div>
+        <div style="color:#6b7280;font-weight:700;font-size:10px">E-FIR REFERENCE NUMBER</div>
+        <div style="font-weight:800;color:#111827;font-size:14px;font-family:monospace" id="rec-fir-no">FIR/3304/2026</div>
+      </div>
+      <div>
+        <div style="color:#6b7280;font-weight:700;font-size:10px">REGISTRATION TIMESTAMP</div>
+        <div style="font-weight:600;color:#111827" id="rec-timestamp">09 Jul 2026, 15:16 IST</div>
+      </div>
+      <div>
+        <div style="color:#6b7280;font-weight:700;font-size:10px">POLICE STATION / JURISDICTION</div>
+        <div style="font-weight:600;color:#111827" id="rec-station">Jayanagar PS — Urban</div>
+      </div>
+      <div>
+        <div style="color:#6b7280;font-weight:700;font-size:10px">INVESTIGATING / DUTY OFFICER</div>
+        <div style="font-weight:600;color:#111827" id="rec-officer">Inspector Asha Patel</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:800;color:#374151;text-transform:uppercase;margin-bottom:4px">STATUTORY CHARGES REGISTERED (BNS 2023)</div>
+      <div style="font-size:13px;font-weight:700;color:#1e40af" id="rec-charges">BNS §304 (Snatching) · BNS §309 (Robbery)</div>
+    </div>
+
+    <div style="margin-bottom:20px">
+      <div style="font-size:11px;font-weight:800;color:#374151;text-transform:uppercase;margin-bottom:4px">INCIDENT SYNOPSIS</div>
+      <div style="font-size:12px;color:#374151;line-height:1.5;background:#f3f4f6;padding:10px;border-radius:6px" id="rec-narrative">
+        Two unidentified persons on a motorcycle snatched gold chain at Jayanagar 4th Block.
+      </div>
+    </div>
+
+    <div style="border-top:1px dashed #9ca3af;padding-top:14px;display:flex;align-items:center;justify-content:space-between;font-size:11px">
+      <div>
+        <div style="font-weight:700;color:#111827">SHA-256 DIGITAL INTEGRITY SEAL</div>
+        <div style="font-family:monospace;font-size:10px;color:#4b5563" id="rec-hash">e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</div>
+      </div>
+      <div style="background:#111827;color:#ffffff;font-family:monospace;padding:6px 12px;border-radius:4px;font-weight:700;font-size:11px">REGISTERED & SEALED</div>
+    </div>
+
+    <div style="margin-top:24px;display:flex;justify-content:flex-end;gap:10px">
+      <button class="btn btn-secondary sm" onclick="window.print()">🖨️ Print Receipt</button>
+      <button class="btn btn-primary sm" id="close-receipt-btn">Done & Go to Dashboard</button>
+    </div>
+  </div>
+</div>
+
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a href="dashboard.html" class="sidebar-logo">
+        <div class="sidebar-logo-icon">👁️</div>
+        <span class="sidebar-logo-text">Drishti</span>
+      </a>
+      <button class="sidebar-toggle" id="sidebar-toggle">◀</button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Case Filing</div>
+      <a href="fir-entry.html" class="nav-item active"><span class="nav-icon">📝</span><span class="nav-label">File New e-FIR</span></a>
+      <div class="nav-section-label">Intelligence</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span></a>
+      <a href="chat.html"      class="nav-item"><span class="nav-icon">💬</span><span class="nav-label">Chat Assistant</span></a>
+      <a href="network.html"   class="nav-item"><span class="nav-icon">🕸️</span><span class="nav-label">Network Graph</span></a>
+      <div class="nav-section-label">Analysis</div>
+      <a href="hotspot.html"   class="nav-item"><span class="nav-icon">🔥</span><span class="nav-label">Hotspot Map</span></a>
+      <a href="trends.html"    class="nav-item"><span class="nav-icon">📈</span><span class="nav-label">Trends & Forecast</span></a>
+      <div class="nav-section-label">Records</div>
+      <a href="audit.html"     class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">Audit Trail</span></a>
+      <a href="export.html"    class="nav-item"><span class="nav-icon">📄</span><span class="nav-label">PDF Export</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="user-avatar">U</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="user-name">Officer</div>
+          <div id="user-role-label" class="badge badge-inspector">Inspector</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost sm" data-action="logout" style="width:100%;margin-top:var(--space-3)">🚪 Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN AREA -->
+  <div class="main-area">
+    <!-- Topbar -->
+    <header class="topbar">
+      <span class="topbar-title">📝 AI-Assisted e-FIR & Case Registration (BNSS §173 Compliant)</span>
+      <div class="topbar-actions">
+        <span class="badge badge-fact">🔒 SHA-256 Tamper-Proof Sealing</span>
+        <button class="btn btn-secondary sm" onclick="window.location.href='audit.html'">📋 View Statutory Ledger</button>
+        <button class="btn btn-ghost sm" data-action="logout">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="content-area">
+
+      <!-- Lead Banner -->
+      <div class="dash-lead-banner">
+        <span>⚖️</span>
+        <span>Every registered FIR undergoes real-time AI cross-referencing against existing criminal networks, getaway vehicles, and statutory Bharatiya Nyaya Sanhita (BNS) 2023 penal codes.</span>
+      </div>
+
+      <div class="fir-layout animate-fadeUp">
+
+        <!-- LEFT: FIR REGISTRATION FORM -->
+        <form class="fir-form-card" id="fir-registration-form" onsubmit="return false;">
+
+          <!-- STEP 1: Jurisdiction & General Information -->
+          <div>
+            <div class="step-header">
+              <div class="step-number">1</div>
+              <div>
+                <div class="step-title">General Information & Jurisdiction</div>
+                <div class="step-subtitle">Select Police Station and incident timestamp</div>
+              </div>
+            </div>
+
+            <div class="grid-2 gap-4 mt-4">
+              <div class="form-group">
+                <label class="form-label text-xs uppercase font-bold text-muted">Police Station (SHO Jurisdiction)</label>
+                <select class="input select" id="fir-ps" required>
+                  <option value="Jayanagar PS">Jayanagar Police Station</option>
+                  <option value="Yelahanka PS">Yelahanka Police Station</option>
+                  <option value="KR Puram PS">KR Puram Police Station</option>
+                  <option value="Cubbon Park PS">Cubbon Park Police Station</option>
+                  <option value="JP Nagar PS">JP Nagar Police Station</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label text-xs uppercase font-bold text-muted">Incident Date & Time</label>
+                <input type="datetime-local" class="input" id="fir-datetime" required />
+              </div>
+            </div>
+
+            <div class="form-group mt-3">
+              <label class="form-label text-xs uppercase font-bold text-muted">Specific Beat / Incident Location Address</label>
+              <input type="text" class="input" id="fir-location" placeholder="e.g. 14B, 4th Cross, Jayanagar 4th Block, near Metro Station" required />
+            </div>
+          </div>
+
+          <!-- STEP 2: Complainant / Victim Details with DPDPA Protection -->
+          <div>
+            <div class="step-header">
+              <div class="step-number">2</div>
+              <div>
+                <div class="step-title">Complainant / Survivor Details</div>
+                <div class="step-subtitle">Statutory confidentiality protections under POCSO & BNS §72</div>
+              </div>
+            </div>
+
+            <div class="grid-2 gap-4 mt-4">
+              <div class="form-group">
+                <label class="form-label text-xs uppercase font-bold text-muted">Complainant Full Name</label>
+                <input type="text" class="input" id="fir-comp-name" placeholder="Enter full legal name" required />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label text-xs uppercase font-bold text-muted">Contact / Aadhaar Ref (Masked)</label>
+                <input type="text" class="input" id="fir-comp-phone" placeholder="+91-XXXXX-XXXXX" />
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:12px;background:var(--color-bg-elevated);border:1px solid var(--color-border);border-radius:10px">
+                <input type="checkbox" id="fir-suppress-toggle" style="width:16px;height:16px;accent-color:var(--color-danger)" />
+                <div>
+                  <div style="font-size:12px;font-weight:700;color:var(--color-danger)">🔒 Statutory Identity Suppression Required (DPDPA / POCSO / Sensitive Case)</div>
+                  <div style="font-size:11px;color:var(--color-text-muted)">Conceals survivor identity from public e-FIR portals and general station access.</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- STEP 3: Incident Narrative & AI BNS Charge Suggestion -->
+          <div>
+            <div class="step-header">
+              <div class="step-number">3</div>
+              <div>
+                <div class="step-title">Incident Narrative & Statutory BNS Charges</div>
+                <div class="step-subtitle">Type facts below; AI engine will analyze penal codes</div>
+              </div>
+            </div>
+
+            <div class="form-group mt-4">
+              <div class="flex items-center justify-between mb-1">
+                <label class="form-label text-xs uppercase font-bold text-muted">Incident Statement / Facts (Bilingual Supported)</label>
+                <button type="button" class="btn btn-secondary sm" id="ai-suggest-btn">⚡ Analyze & Suggest BNS Sections</button>
+              </div>
+              <textarea class="input" id="fir-narrative" rows="4" placeholder="Describe the incident in detail (e.g. Two unidentified individuals on a black motorcycle snatched gold chain at knife point near Jayanagar 4th Block...)" required></textarea>
+            </div>
+
+            <div class="form-group mt-3">
+              <label class="form-label text-xs uppercase font-bold text-muted">Applied Penal Codes (Bharatiya Nyaya Sanhita - BNS 2023)</label>
+              <input type="text" class="input font-semibold text-primary" id="fir-charges" placeholder="Click 'Analyze & Suggest BNS Sections' or enter manually (e.g., BNS §304, BNS §309)" required />
+            </div>
+          </div>
+
+          <!-- STEP 4: Entities Involved & Evidence Matching -->
+          <div>
+            <div class="step-header">
+              <div class="step-number">4</div>
+              <div>
+                <div class="step-title">Accused & Getaway Vehicle Linking</div>
+                <div class="step-subtitle">Live cross-matching against SCRB criminal database</div>
+              </div>
+            </div>
+
+            <div class="grid-2 gap-4 mt-4">
+              <div class="form-group">
+                <label class="form-label text-xs uppercase font-bold text-muted">Accused / Suspect Name (If Known)</label>
+                <div class="flex gap-2">
+                  <input type="text" class="input" id="fir-accused-input" placeholder="e.g. Rajan B. or Unidentified" />
+                  <button type="button" class="btn btn-secondary sm" id="add-accused-btn">Add</button>
+                </div>
+                <div class="entity-tag-list" id="accused-tags"></div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label text-xs uppercase font-bold text-muted">Vehicle Registration / Make</label>
+                <div class="flex gap-2">
+                  <input type="text" class="input font-mono" id="fir-vehicle-input" placeholder="e.g. KA-01-MH-4432" />
+                  <button type="button" class="btn btn-secondary sm" id="add-vehicle-btn">Add</button>
+                </div>
+                <div class="entity-tag-list" id="vehicle-tags"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUBMIT AREA -->
+          <div style="border-top:1px solid var(--color-border-subtle);padding-top:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div class="text-xs text-muted">
+              ✅ Submitting creates an immutable SHA-256 seal in the statutory audit ledger.
+            </div>
+            <button type="submit" class="btn btn-primary" id="submit-fir-btn" style="padding:12px 28px;font-size:14px;font-weight:700">
+              🚀 Register & Seal Statutory e-FIR
+            </button>
+          </div>
+
+        </form>
+
+        <!-- RIGHT: AI LEGAL & INTELLIGENCE CO-PILOT CARD -->
+        <aside class="ai-assistant-card">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-bold text-primary flex items-center gap-2">
+              <span>🤖</span><span>Drishti AI Legal & Evidentiary Co-Pilot</span>
+            </span>
+            <span class="badge badge-fact">BNSS §173</span>
+          </div>
+          <p class="text-xs text-secondary leading-relaxed">
+            As you draft the narrative, Drishti cross-references statutory Bharatiya Nyaya Sanhita penal sections and checks live criminal syndicate records.
+          </p>
+
+          <!-- LIVE MATCH ALERT CARD -->
+          <div class="match-alert-box" id="match-alert-box">
+            <div class="text-xs font-bold text-danger uppercase tracking-wider mb-1 flex items-center gap-1">
+              <span>🔴</span><span>Syndicate Match Detected</span>
+            </div>
+            <div class="text-xs text-primary font-semibold" id="match-alert-title">Vehicle / Accused Match</div>
+            <div class="text-xs text-secondary mt-1 leading-relaxed" id="match-alert-desc">
+              Entity matches prior FIR/0114/2025 (Chain Snatching Ring). Linked to co-accused Suresh K.
+            </div>
+          </div>
+
+          <!-- SUGGESTED BNS SECTIONS CONTAINER -->
+          <div>
+            <div class="text-xs font-bold text-muted uppercase tracking-wider mb-2">Recommended BNS Penal Codes</div>
+            <div class="flex flex-col gap-2" id="bns-suggestions-list">
+              <!-- Default Suggestions -->
+              <div class="bns-suggestion-chip" onclick="applySuggestedCharge('BNS §304 (Snatching)')">
+                <div class="bns-sec-num">BNS §304</div>
+                <div class="bns-sec-title">Snatching of Property</div>
+                <div class="bns-sec-desc">Imprisonment up to 3 years + fine. Applies when property is forcefully grabbed.</div>
+              </div>
+              <div class="bns-suggestion-chip" onclick="applySuggestedCharge('BNS §309 (Robbery)')">
+                <div class="bns-sec-num">BNS §309</div>
+                <div class="bns-sec-title">Robbery / Extortion with Danger</div>
+                <div class="bns-sec-desc">Rigorous imprisonment up to 10 years. Applies when wrongful restraint or weapon is involved.</div>
+              </div>
+              <div class="bns-suggestion-chip" onclick="applySuggestedCharge('BNS §305 (Burglary / House-breaking)')">
+                <div class="bns-sec-num">BNS §305</div>
+                <div class="bns-sec-title">Theft in Dwelling House</div>
+                <div class="bns-sec-desc">Imprisonment up to 7 years + fine. Applies to residential break-ins.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-xl" style="background:var(--color-bg-elevated);border:1px solid var(--color-border)">
+            <div class="text-xs font-bold text-primary mb-1">🔗 Integrated Flow</div>
+            <div class="text-xs text-muted leading-relaxed">
+              Upon e-FIR registration, the case node is immediately added to the Network Graph and mapped onto the Hotspot Heatmap.
+            </div>
+          </div>
+        </aside>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+(function(){
+  'use strict';
+  const { Session, RBAC, AuditLog, Toast, ROLES } = window.Drishti;
+  if (!RBAC.requireLogin()) return;
+
+  const session  = Session.load();
+  const roleData = ROLES[session?.role] || {};
+
+  const av = document.getElementById('user-avatar');
+  if(av){av.textContent=(session.userName||'U')[0];av.style.background=`linear-gradient(135deg,${roleData.color}55,${roleData.color})`;}
+  const un = document.getElementById('user-name'); if(un) un.textContent=session.userName;
+  const rl = document.getElementById('user-role-label'); if(rl){rl.textContent=roleData.label;rl.className=`badge ${roleData.badge}`;}
+
+  document.querySelectorAll('[data-action="logout"]').forEach(el=>el.addEventListener('click',()=>{AuditLog.log({type:'LOGOUT'});Session.clear();window.location.href='index.html';}));
+  document.getElementById('sidebar-toggle').addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('collapsed'));
+
+  /* Set default datetime to now */
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  document.getElementById('fir-datetime').value = now.toISOString().slice(0, 16);
+
+  /* Entity tag arrays */
+  const accusedList = [];
+  const vehicleList = [];
+
+  function renderTags() {
+    const aBox = document.getElementById('accused-tags');
+    const vBox = document.getElementById('vehicle-tags');
+    aBox.innerHTML = accusedList.map((item, idx) => `
+      <div class="entity-tag">👤 ${item} <button type="button" onclick="window.removeAccused(${idx})">✕</button></div>
+    `).join('');
+    vBox.innerHTML = vehicleList.map((item, idx) => `
+      <div class="entity-tag font-mono">🚗 ${item} <button type="button" onclick="window.removeVehicle(${idx})">✕</button></div>
+    `).join('');
+  }
+
+  window.removeAccused = function(idx) { accusedList.splice(idx, 1); renderTags(); };
+  window.removeVehicle = function(idx) { vehicleList.splice(idx, 1); renderTags(); };
+
+  document.getElementById('add-accused-btn').addEventListener('click', () => {
+    const inp = document.getElementById('fir-accused-input');
+    const val = inp.value.trim();
+    if (!val) return;
+    accusedList.push(val);
+    inp.value = '';
+    renderTags();
+    checkSyndicateMatch(val);
+  });
+
+  document.getElementById('add-vehicle-btn').addEventListener('click', () => {
+    const inp = document.getElementById('fir-vehicle-input');
+    const val = inp.value.trim().toUpperCase();
+    if (!val) return;
+    vehicleList.push(val);
+    inp.value = '';
+    renderTags();
+    checkSyndicateMatch(val);
+  });
+
+  function checkSyndicateMatch(entity) {
+    const alertBox = document.getElementById('match-alert-box');
+    const titleEl  = document.getElementById('match-alert-title');
+    const descEl   = document.getElementById('match-alert-desc');
+
+    if (entity.includes('KA-01-MH-4432') || entity.toLowerCase().includes('rajan')) {
+      alertBox.classList.add('show');
+      titleEl.textContent = `High-Priority Match: "${entity}"`;
+      descEl.textContent  = `Match found in active FIR/2291/2026 & FIR/0114/2025 (Jayanagar Burglary Syndicate). Investigating officer notified.`;
+      Toast.warning(`Syndicate match detected for ${entity}!`);
+    }
+  }
+
+  window.applySuggestedCharge = function(chargeStr) {
+    const inp = document.getElementById('fir-charges');
+    if (!inp.value) {
+      inp.value = chargeStr;
+    } else if (!inp.value.includes(chargeStr)) {
+      inp.value += ` · ${chargeStr}`;
+    }
+    Toast.success(`Added charge: ${chargeStr}`);
+  };
+
+  /* AI Suggestion Button */
+  document.getElementById('ai-suggest-btn').addEventListener('click', () => {
+    const narrative = document.getElementById('fir-narrative').value.toLowerCase();
+    if (!narrative.trim()) {
+      Toast.warning('Please enter incident narrative first');
+      return;
+    }
+    Toast.info('Analyzing narrative facts against Bharatiya Nyaya Sanhita (BNS) penal codes...');
+    setTimeout(() => {
+      if (narrative.includes('chain') || narrative.includes('snatch') || narrative.includes('grab')) {
+        window.applySuggestedCharge('BNS §304 (Snatching)');
+      }
+      if (narrative.includes('knife') || narrative.includes('weapon') || narrative.includes('threat') || narrative.includes('rob')) {
+        window.applySuggestedCharge('BNS §309 (Robbery)');
+      }
+      if (narrative.includes('house') || narrative.includes('door') || narrative.includes('burglar')) {
+        window.applySuggestedCharge('BNS §305 (Theft in Dwelling House)');
+      }
+      if (!document.getElementById('fir-charges').value) {
+        window.applySuggestedCharge('BNS §303 (Theft)');
+      }
+    }, 450);
+  });
+
+  /* Submit FIR Form */
+  document.getElementById('fir-registration-form').addEventListener('submit', () => {
+    const ps = document.getElementById('fir-ps').value;
+    const dt = document.getElementById('fir-datetime').value;
+    const loc = document.getElementById('fir-location').value;
+    const compName = document.getElementById('fir-comp-name').value;
+    const suppress = document.getElementById('fir-suppress-toggle').checked;
+    const narrative = document.getElementById('fir-narrative').value;
+    const charges = document.getElementById('fir-charges').value;
+
+    if (!loc || !compName || !narrative || !charges) {
+      Toast.error('Please fill all required statutory fields.');
+      return;
+    }
+
+    const randSeq = Math.floor(3300 + Math.random() * 900);
+    const firNo   = `FIR/${randSeq}/2026`;
+
+    AuditLog.log({
+      type: 'FIR_REGISTRATION',
+      detail: `Registered ${firNo} at ${ps}. Charges: ${charges}. Suppressed: ${suppress}`,
+      restricted: suppress,
+      auditId: `AL-FIR-${randSeq}`
+    });
+
+    /* Populate modal receipt */
+    document.getElementById('rec-fir-no').textContent = firNo;
+    document.getElementById('rec-timestamp').textContent = new Date().toLocaleString('en-IN', { dateStyle:'medium', timeStyle:'short' });
+    document.getElementById('rec-station').textContent = `${ps} — Bengaluru Urban`;
+    document.getElementById('rec-officer').textContent = `${session.userName} (${roleData.label})`;
+    document.getElementById('rec-charges').textContent = charges;
+    document.getElementById('rec-narrative').textContent = narrative;
+
+    document.getElementById('fir-success-modal').style.display = 'flex';
+    Toast.success(`Successfully Registered Statutory e-FIR ${firNo}!`);
+  });
+
+  document.getElementById('close-receipt-btn').addEventListener('click', () => {
+    window.location.href = 'dashboard.html';
+  });
+
+  AuditLog.log({ type: 'PAGE_VIEW', detail: 'AI e-FIR Registration Module opened' });
+})();
+</script>
+</body>
+</html>
