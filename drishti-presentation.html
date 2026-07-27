@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Drishti — KSP Datathon 2026 Prototype Submission</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --blue:#4f6ef7; --blue-light:#7b93ff; --blue-dark:#2d4ad4;
+    --purple:#a78bfa; --green:#22c97a; --orange:#f5a623;
+    --red:#f25c5c; --dark:#080d1a; --dark2:#0c1630;
+    --dark3:#111827; --surface:#141e38; --border:#1e2d4d;
+    --text:#e8edf8; --muted:#6b7a99; --sub:#9ba8c5;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--dark);font-family:'Inter',sans-serif;color:var(--text)}
+
+  /* SLIDES */
+  .slides-wrapper{width:100%;height:100vh;position:relative}
+  .slide{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;
+    opacity:0;pointer-events:none;
+    transition:opacity .5s ease, transform .5s ease;
+    transform:translateX(60px);
+    padding:60px 80px;
+    overflow:hidden;
+  }
+  .slide.active{opacity:1;pointer-events:all;transform:translateX(0)}
+  .slide.prev{transform:translateX(-60px)}
+
+  /* BACKGROUNDS */
+  .bg-hero{background:linear-gradient(150deg,#050a18 0%,#091428 40%,#0f1e3d 100%)}
+  .bg-dark{background:linear-gradient(135deg,#070c1a 0%,#0c1630 100%)}
+  .bg-blue{background:linear-gradient(135deg,#0a1428 0%,#1a2d5a 100%)}
+  .bg-surface{background:var(--surface)}
+
+  /* GRID OVERLAY */
+  .grid-overlay{position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,rgba(79,110,247,.03) 0,rgba(79,110,247,.03) 1px,transparent 1px,transparent 60px),repeating-linear-gradient(90deg,rgba(79,110,247,.03) 0,rgba(79,110,247,.03) 1px,transparent 1px,transparent 60px);pointer-events:none}
+
+  /* GLOW BLOBS */
+  .glow{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0}
+  .glow-blue{background:rgba(79,110,247,.15);width:500px;height:500px}
+  .glow-purple{background:rgba(167,139,250,.10);width:400px;height:400px}
+  .glow-green{background:rgba(34,201,122,.08);width:300px;height:300px}
+
+  /* COMMON ELEMENTS */
+  .slide-content{position:relative;z-index:1;flex:1;display:flex;flex-direction:column}
+  .slide-num{position:absolute;bottom:24px;right:80px;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:.05em;z-index:10}
+  .tag{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+  .tag-blue{background:rgba(79,110,247,.18);border:1px solid rgba(79,110,247,.4);color:var(--blue-light)}
+  .tag-green{background:rgba(34,201,122,.15);border:1px solid rgba(34,201,122,.35);color:#6effc2}
+  .tag-orange{background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.35);color:#ffd580}
+  .tag-purple{background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.35);color:#d4b9ff}
+  .tag-red{background:rgba(242,92,92,.15);border:1px solid rgba(242,92,92,.35);color:#ff9999}
+
+  .section-label{font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--blue);margin-bottom:12px}
+  .slide-title{font-size:clamp(28px,4vw,52px);font-weight:900;line-height:1.1;letter-spacing:-.02em;margin-bottom:16px}
+  .slide-sub{font-size:15px;color:var(--sub);line-height:1.7;max-width:700px}
+  .gradient-text{background:linear-gradient(135deg,#e8edf8 20%,var(--blue-light) 60%,var(--purple) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .blue-text{color:var(--blue-light)}
+  .green-text{color:var(--green)}
+  .orange-text{color:var(--orange)}
+  .purple-text{color:var(--purple)}
+
+  /* DIVIDER */
+  .divider{width:64px;height:3px;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:2px;margin:16px 0}
+
+  /* CARDS */
+  .card{background:rgba(20,30,56,.7);border:1px solid var(--border);border-radius:16px;padding:24px;backdrop-filter:blur(10px)}
+  .card-sm{background:rgba(20,30,56,.7);border:1px solid var(--border);border-radius:12px;padding:16px 20px;backdrop-filter:blur(8px)}
+
+  /* GRIDS */
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+  /* STAT BOXES */
+  .stat-box{background:rgba(79,110,247,.08);border:1px solid rgba(79,110,247,.2);border-radius:14px;padding:20px;text-align:center}
+  .stat-val{font-size:32px;font-weight:900;color:var(--blue-light);line-height:1}
+  .stat-lbl{font-size:11px;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.05em}
+
+  /* FEATURE ROW */
+  .feat-row{display:flex;align-items:flex-start;gap:14px;padding:14px;border-radius:12px;background:rgba(14,22,42,.5);border:1px solid rgba(255,255,255,.05);margin-bottom:10px}
+  .feat-icon{font-size:22px;flex-shrink:0;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(79,110,247,.12);border-radius:10px}
+  .feat-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px}
+  .feat-desc{font-size:12px;color:var(--sub);line-height:1.5}
+
+  /* PILL */
+  .pill{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;margin:3px}
+  .pill-blue{background:rgba(79,110,247,.15);border:1px solid rgba(79,110,247,.3);color:var(--blue-light)}
+  .pill-green{background:rgba(34,201,122,.12);border:1px solid rgba(34,201,122,.3);color:#6effc2}
+  .pill-purple{background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);color:#d4b9ff}
+  .pill-orange{background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.3);color:#ffd580}
+
+  /* TIMELINE */
+  .timeline{display:flex;flex-direction:column;gap:12px}
+  .tl-item{display:flex;gap:16px;align-items:flex-start}
+  .tl-dot{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:2px}
+  .tl-body{flex:1}
+  .tl-title{font-size:14px;font-weight:700;color:var(--text)}
+  .tl-desc{font-size:12px;color:var(--sub);margin-top:2px;line-height:1.5}
+
+  /* TABLE */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:rgba(79,110,247,.15);color:var(--blue-light);padding:10px 14px;text-align:left;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border:1px solid var(--border)}
+  td{padding:10px 14px;border:1px solid rgba(30,45,77,.8);color:var(--sub);vertical-align:top}
+  tr:nth-child(even) td{background:rgba(14,22,42,.4)}
+  td:first-child{color:var(--text);font-weight:600}
+
+  /* QUOTE */
+  .quote-box{background:linear-gradient(135deg,rgba(79,110,247,.1),rgba(167,139,250,.08));border-left:3px solid var(--blue);border-radius:0 12px 12px 0;padding:20px 24px}
+
+  /* PROGRESS BAR */
+  .prog-row{margin-bottom:12px}
+  .prog-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+  .prog-label span:first-child{color:var(--text);font-weight:600}
+  .prog-label span:last-child{color:var(--blue-light);font-weight:700}
+  .prog-bar{height:6px;background:rgba(79,110,247,.15);border-radius:3px}
+  .prog-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--blue),var(--purple))}
+
+  /* ARCHITECTURE BOX */
+  .arch-box{background:rgba(4,8,20,.8);border:1px solid var(--border);border-radius:12px;padding:20px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6effc2;line-height:1.8}
+
+  /* COMPLIANCE BADGE */
+  .comp-badge{display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(34,201,122,.08);border:1px solid rgba(34,201,122,.2);border-radius:10px;margin-bottom:8px}
+  .comp-check{color:var(--green);font-size:16px;flex-shrink:0}
+  .comp-law{font-size:13px;font-weight:700;color:var(--text)}
+  .comp-desc{font-size:11px;color:var(--muted)}
+
+  /* NAV CONTROLS */
+  .nav-controls{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;z-index:100;background:rgba(8,13,26,.85);border:1px solid var(--border);border-radius:40px;padding:10px 20px;backdrop-filter:blur(20px)}
+  .nav-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:rgba(79,110,247,.1);color:var(--text);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+  .nav-btn:hover{background:var(--blue);border-color:var(--blue)}
+  .slide-counter{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;min-width:50px;text-align:center}
+  .progress-track{width:200px;height:3px;background:rgba(79,110,247,.2);border-radius:2px;overflow:hidden}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:2px;transition:width .4s ease}
+
+  /* LOGO MARK */
+  .logo-mark{display:inline-flex;align-items:center;gap:10px;font-size:18px;font-weight:800;letter-spacing:-.02em}
+  .logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:18px}
+
+  /* HERO HEADLINE */
+  .hero-headline{font-size:clamp(48px,6vw,80px);font-weight:900;line-height:.95;letter-spacing:-.04em}
+  .hero-sub{font-size:18px;color:var(--sub);line-height:1.7;max-width:600px;margin-top:20px}
+
+  /* TWO COL LAYOUT */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+  .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px}
+
+  /* SCREENSHOT MOCK */
+  .screen-mock{background:var(--dark3);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .screen-titlebar{background:var(--dark2);padding:8px 14px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border)}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .screen-body{padding:16px;font-size:11px;font-family:'JetBrains Mono',monospace;color:#6effc2;line-height:1.8}
+
+  /* HIGHLIGHT BOX */
+  .hl-box{background:linear-gradient(135deg,rgba(79,110,247,.12),rgba(167,139,250,.08));border:1px solid rgba(79,110,247,.25);border-radius:14px;padding:20px}
+
+  /* KSP HEADER STRIP */
+  .ksp-strip{background:linear-gradient(90deg,rgba(79,110,247,.15),rgba(167,139,250,.1));border:1px solid rgba(79,110,247,.25);border-radius:10px;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+  .ksp-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue-light)}
+</style>
+</head>
+<body>
+
+<div class="slides-wrapper" id="slides-wrapper">
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 01 — TITLE COVER
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide bg-hero active" id="slide-1">
+  <div class="grid-overlay"></div>
+  <div class="glow glow-blue" style="top:-100px;left:-100px"></div>
+  <div class="glow glow-purple" style="bottom:-80px;right:-80px"></div>
+
+  <div class="slide-content" style="justify-content:center;height:100%">
+    <div class="ksp-strip">
+      <span class="ksp-title">🏛️ KSP Datathon 2026 — Prototype Submission</span>
+      <span style="font-size:11px;color:var(--muted)">Karnataka State Police · SCRB</span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:32px">
+      <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:28px">👁️</div>
+      <div>
+        <div class="logo-mark" style="font-size:24px">DRISHTI</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">दृष्टि · ದೃಷ್ಟಿ · Vision</div>
+      </div>
+    </div>
+
+    <div class="hero-headline">
+      <span class="gradient-text">AI-Powered</span><br/>
+      <span class="gradient-text">Crime Intelligence</span><br/>
+      <span style="color:var(--sub)">for Karnataka Police</span>
+    </div>
+
+    <p class="hero-sub">
+      A production-grade, statutory-compliant intelligence platform that transforms how Karnataka Police investigates crimes, files FIRs, and prevents future incidents — in 3 languages.
+    </p>
+
+    <div style="display:flex;gap:12px;margin-top:32px;flex-wrap:wrap">
+      <span class="tag tag-green">✅ BNS 2023 Compliant</span>
+      <span class="tag tag-blue">🤖 Gemini 2.5 Flash AI</span>
+      <span class="tag tag-purple">🔒 DPDPA 2023</span>
+      <span class="tag tag-orange">📊 Real-Time Intelligence</span>
+      <span class="tag tag-red">⚖️ BSA 2023 Court-Ready</span>
+    </div>
+  </div>
+  <div class="slide-num">01 / 15</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 02 — PROBLEM STATEMENT
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide bg-dark" id="slide-2">
+  <div class="grid-overlay"></div>
+  <div class="glow glow-red" style="background:rgba(242,92,92,.1);top:-100px;right:0;width:400px;height:400px"></div>
+
+  <div class="slide-content">
+    <div class="section-label">01 · Problem Statement</div>
+    <div class="slide-title">The Challenges<br/><span class="gradient-text">Karnataka Police Faces Today</span></div>
+    <div class="divider"></div>
+
+    <div class="g2" style="margin-top:24px;flex:1">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="feat-row">
+          <div class="feat-icon">📝</div>
+          <div>
+            <div class="feat-title">Manual FIR Filing is Slow & Error-Prone</div>
+            <div class="feat-desc">Officers spend hours manually drafting FIRs without guidance on correct BNS penal sections — leading to legal errors and case weaknesses.</div>
+          </div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon">🗂️</div>
+          <div>
+            <div class="feat-title">No Cross-Case Criminal Intelligence</div>
+            <div class="feat-desc">Repeat offenders and criminal syndicates go undetected because FIRs are siloed across stations with no automated linkage or network analysis.</div>
+          </div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon">🗺️</div>
+          <div>
+            <div class="feat-title">Reactive Patrolling — Not Predictive</div>
+            <div class="feat-desc">Beat patrols are assigned based on intuition, not data-driven hotspot intelligence. High-risk zones go under-patrolled during peak crime hours.</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="feat-row">
+          <div class="feat-icon">🌐</div>
+          <div>
+            <div class="feat-title">Language Barrier in Multi-Lingual Jurisdiction</div>
+            <div class="feat-desc">Officers and complainants speak Kannada and Hindi, but most intelligence tools are English-only — creating friction and errors in reporting.</div>
+          </div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon">⚖️</div>
+          <div>
+            <div class="feat-title">Weak Evidentiary Documentation for Courts</div>
+            <div class="feat-desc">Case files lack proper Bharatiya Sakshya Adhiniyam (BSA) 2023 classification — making digital evidence inadmissible or challenged in court.</div>
+          </div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon">🔒</div>
+          <div>
+            <div class="feat-title">No Statutory Audit Trail</div>
+            <div class="feat-desc">Access to sensitive victim data, classified FIRs and intelligence queries goes unlogged — violating DPDPA 2023 and exposing departments to liability.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">02 / 15</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 03 — SOLUTION OVERVIEW
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide bg-blue" id="slide-3">
+  <div class="grid-overlay"></div>
+  <div class="glow glow-blue" style="top:-50px;right:-50px"></div>
+
+  <div class="slide-content">
+    <div class="section-label">02 · The Solution</div>
+    <div class="slide-title">Drishti — <span class="gradient-text">One Platform,</span><br/>Nine Intelligence Capabilities</div>
+    <div class="divider"></div>
+
+    <div style="margin-top:20px;flex:1">
+      <div class="g3" style="gap:12px">
+        <div class="card-sm">
+          <div style="font-size:20px;margin-bottom:8px">📝</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">AI e-FIR Registration</div>
+          <div style="font-size:11px;color:var(--sub)">BNS 2023 penal codes auto-suggested from narrative text</div>
+        </div>
+        <div class="card-sm">
+          <div style="font-size:20px;margin-bottom:8px">💬</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Trilingual AI Chat</div>
+          <div style="font-size:11px;color:var(--sub)">English · Kannada · Hindi with Voice ASR</div>
+        </div>
+        <div class="card-sm">
+          <div style="font-size:20px;margin-bottom:8px">🕸️</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Criminal Network Graph</div>
+          <div style="font-size:11px;color:var(--sub)">D3.js force-directed co-accused & CDR link analysis</div>
+        </div>
+        <div class="card-sm">
+          <div style="font-size:20px;margin-bottom:8px">🔥</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Crime Hotspot Map</div>
+          <div style="font-size:11px;color:var(--sub)">Leaflet heatmap with real-time patrol recommendations</div>
+        </div>
+        <div class="card-sm">
+          <div style="font-size:20px;margin-bottom:8px">📈</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Predictive Forecasting</div>
+          <div style="font-size:11px;color:var(--sub)">30-day crime trend with confidence interval bands</div>
+        </div>
+        <div class="card-sm">
+          <div style="font-size:20px;margin-bottom:8px">📋</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Statutory Audit Ledger</div>
+          <div style="font-size:11px;color:var(--sub)">SHA-256 tamper-proof DPDPA 2023 compliance log</div>
+        </div>
+        <div class="card-sm">
+          <div style="font-size:20px;margin-bottom:8px">📄</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Court Dossier Export</div>
+          <div style="font-size:11px;color:var(--sub)">BSA 2023 evidentiary PDF for court submission</div>
+        </div>
+        <div class="card-sm">
+          <div style="font-size:20px;margin-bottom:8px">🔐</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">4-Tier RBAC</div>
+          <div style="font-size:11px;color:var(--sub)">DGP → SP → Inspector → Analyst access control</div>
+        </div>
+        <div class="card-sm" style="border-color:rgba(79,110,247,.4);background:rgba(79,110,247,.1)">
+          <div style="font-size:20px;margin-bottom:8px">⚡</div>
+          <div style="font-size:13px;font-weight:700;color:var(--blue-light);margin-bottom:4px">Live Gemini AI Engine</div>
+          <div style="font-size:11px;color:var(--sub)">Google Gemini 2.5 Flash with SCRB RAG context</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">03 / 15</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 04 — SYSTEM ARCHITECTURE
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide bg-dark" id="slide-4">
+  <div class="grid-overlay"></div>
+  <div class="glow glow-purple" style="bottom:-100px;left:50%;transform:translateX(-50%)"></div>
+
+  <div class="slide-content">
+    <div class="section-label">03 · Technical Architecture</div>
+    <div class="slide-title">How <span class="gradient-text">Drishti Works</span></div>
+    <div class="divider"></div>
+
+    <div class="two-col" style="margin-top:20px;flex:1;align-items:center">
+      <div>
+        <div class="arch-box">
+┌──────────────────────────────────────┐
+│   DRISHTI v2.0  —  SYSTEM LAYERS     │
+├──────────────────────────────────────┤
+│  AUTH LAYER                          │
+│  index.html → Role Selection → RBAC  │
+├──────────────────────────────────────┤
+│  CORE ENGINE (js/app.js)             │
+│  Session │ RBAC │ AuditLog │ Toast   │
+├──────────────────────────────────────┤
+│  AI ENGINE LAYER                     │
+│  Local Mock Engine  OR               │
+│  Gemini 2.5 Flash + SCRB RAG         │
+├──────────────────────────────────────┤
+│  MODULE LAYER (9 HTML pages)         │
+│  Dashboard │ e-FIR │ Chat            │
+│  Network   │ Hotspot │ Trends        │
+│  Audit     │ Export                  │
+├──────────────────────────────────────┤
+│  DATA LAYER (CDN + Browser Storage)  │
+│  D3.js │ Chart.js │ Leaflet.js       │
+│  sessionStorage │ localStorage       │
+└──────────────────────────────────────┘</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="hl-box">
+          <div style="font-size:12px;font-weight:700;color:var(--blue-light);margin-bottom:8px">🏗️ Architecture Highlights</div>
+          <div style="font-size:12px;color:var(--sub);line-height:1.8">
+            • <strong style="color:var(--text)">Zero Backend Required</strong> — pure HTML5/JS<br/>
+            • <strong style="color:var(--text)">CDN Libraries Only</strong> — D3.js v7, Chart.js 4.4, Leaflet 1.9<br/>
+            • <strong style="color:var(--text)">Offline-First</strong> — Local deterministic engine<br/>
+            • <strong style="color:var(--text)">Gemini API Ready</strong> — Switch to live LLM instantly<br/>
+            • <strong style="color:var(--text)">SCRB RAG Context</strong> — Injected into every AI call
+          </div>
+        </div>
+        <div class="g2" style="gap:12px">
+          <div class="stat-box">
+            <div class="stat-val" style="font-size:24px">~8,500</div>
+            <div class="stat-lbl">Lines of Code</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" style="font-size:24px">409 KB</div>
+            <div class="stat-lbl">Total Project Size</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" style="font-size:24px">9</div>
+            <div class="stat-lbl">HTML Modules</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" style="font-size:24px">27</div>
+            <div class="stat-lbl">Audit Log Points</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">04 / 15</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 05 — AI e-FIR REGISTRATION
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide bg-dark" id="slide-5">
+  <div class="grid-overlay"></div>
+  <div class="glow glow-green" style="background:rgba(34,201,122,.1);top:0;right:0;width:400px;height:400px"></div>
+
+  <div class="slide-content">
+    <div class="section-label">04 · Core Feature — e-FIR Module</div>
+    <div class="slide-title">AI-Assisted <span class="gradient-text">Statutory e-FIR</span><br/>Registration System</div>
+    <div class="divider"></div>
+
+    <div class="two-col" style="margin-top:20px;flex:1">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="feat-row">
+          <div class="feat-icon">⚡</div>
+          <div>
+            <div class="feat-title">AI BNS Penal Code Suggester</div>
+            <div class="feat-desc">Officer types the incident narrative → AI instantly analyzes and recommends the correct Bharatiya Nyaya Sanhita (BNS 2023) sections (e.g., §304 Snatching, §309 Robbery, §305 Burglary)</div>
+          </div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon">🔴</div>
+          <div>
+            <div class="feat-title">Live Criminal Syndicate Matching</div>
+            <div class="feat-desc">As accused names or vehicle numbers are entered, real-time cross-matching against SCRB database triggers an alert if a known criminal syndicate match is detected</div>
+          </div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon">🔒</div>
+          <div>
+            <div class="feat-title">DPDPA / POCSO Identity Suppression</div>
+            <div class="feat-desc">One-click toggle to redact survivor/victim identity from public records under BNS §72 and POCSO provisions — role-gated access only for DGP/SP</div>
+          </div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon">🏛️</div>
+          <div>
+            <div class="feat-title">SHA-256 Sealed e-FIR Receipt</div>
+            <div class="feat-desc">Upon submission, a cryptographic SHA-256 hash is generated and an official BNSS §173 compliant sealed receipt is created, ready to print for court</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="screen-mock">
+          <div class="screen-titlebar">
+            <div class="dot" style="background:#f25c5c"></div>
+            <div class="dot" style="background:#f5a623"></div>
+            <div class="dot" style="background:#22c97a"></div>
+            <span style="font-size:11px;color:var(--muted);margin-left:8px">fir-entry.html — Drishti SCRB</span>
+          </div>
+          <div class="screen-body">
+📋 e-FIR REGISTRATION (BNSS §173)
+━━━━━━━━━━━━━━━━━━━━━━━━━
+📍 Jayanagar PS  |  09 Jul 2026, 15:16 IST
+
+📝 NARRATIVE:
+"Two unidentified individuals on black
+ motorcycle snatched gold chain at
+ knife-point near 4th Block..."
+
+⚡ AI ANALYSIS COMPLETE:
+┌─────────────────────────────┐
+│ ✅ BNS §304 — Snatching     │
+│ ✅ BNS §309 — Robbery       │
+└─────────────────────────────┘
+
+🔴 SYNDICATE MATCH DETECTED!
+KA-01-MH-4432 → FIR/2291/2026
+Linked: Rajan B. (Jayanagar Ring)
+
+🔒 SHA-256: e3b0c44298fc1c14...
+✅ REGISTERED: FIR/3304/2026
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+          <span class="pill pill-green">✅ BNSS §173 Compliant</span>
+          <span class="pill pill-orange">🔴 Live Syndicate Match</span>
+          <span class="pill pill-blue">🔒 SHA-256 Sealed</span>
+          <span class="pill pill-purple">🖨️ Print Receipt</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">05 / 15</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 06 — CHAT ASSISTANT
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide bg-blue" id="slide-6">
+  <div class="grid-overlay"></div>
+  <div class="glow glow-blue" style="bottom:-100px;left:-100px"></div>
+
+  <div class="slide-content">
+    <div class="section-label">05 · Core Feature — AI Chat Assistant</div>
+    <div class="slide-title">Trilingual <span class="gradient-text">Conversational AI</span><br/>with Live Gemini Integration</div>
+    <div class="divider"></div>
+
+    <div class="two-col" style="margin-top:24px;flex:1">
+      <div>
+        <div class="screen-mock">
+          <div class="screen-titlebar">
+            <div class="dot" style="background:#f25c5c"></div>
+            <div class="dot" style="background:#f5a623"></div>
+            <div class="dot" style="background:#22c97a"></div>
+            <span style="font-size:11px;color:var(--muted);margin-left:8px">chat.html — Drishti SCRB</span>
+          </div>
+          <div class="screen-body">
+👮 Insp. Asha Patel:
+"FIR/2291/2026 mein accused kaun hai?"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👁️ Drishti AI:
+[🔍 search_records("FIR/2291/2026")]
+[🕸️ network_lookup("accused_links")]
+
+📋 FACT: Primary accused — Rajan B.
+  Wilson Garden, 2 prior FIRs
+  Vehicle: KA-01-MH-4432
+
+🔗 INFERENCE: Co-accused Suresh K.
+  CDR linkage detected at incident time
+
+⚠️  PREDICTION: 73% re-offence prob.
+  Jayanagar zone, 6–9 PM window
+
+[🔒 Audit ID: AL-9K2M · SHA-256 sealed]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ಕನ್ನಡ | हिंदी | EN  🎙️ Voice Input</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="feat-row">
+          <div class="feat-icon">🌐</div>
+          <div>
+            <div class="feat-title">Auto Trilingual Detection</div>
+            <div class="feat-desc">Detects English, Kannada (ಕನ್ನಡ), and Hindi (हिंदी) automatically and responds in the same language as the officer's query</div>
+          </div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon">🎙️</div>
+          <div>
+            <div class="feat-title">Web Speech API Voice Input</div>
+            <div class="feat-desc">Officers speak in en-IN, kn-IN, or hi-IN — transcribed in real-time with animated waveform. Hands-free field operations supported</div>
+          </div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon">🤖</div>
+          <div>
+            <div class="feat-title">Dual AI Engine Mode</div>
+            <div class="feat-desc">Switch between Local Offline Engine (zero latency, air-gap safe) and Live Google Gemini 2.5 Flash API with SCRB RAG context injection</div>
+          </div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon">🏷️</div>
+          <div>
+            <div class="feat-title">Explainable AI (XAI) Badges</div>
+            <div class="feat-desc">Every AI response is tagged as <strong style="color:#6effc2">FACT</strong> (verified record), <strong style="color:#ffd580">INFERENCE</strong> (algorithmic link), or <strong style="color:#d4b9ff">PREDICTION</strong> (probabilistic)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">06 / 15</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 07 — NETWORK GRAPH + HOTSPOT
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide bg-dark" id="slide-7">
+  <div class="grid-overlay"></div>
+  <div class="glow glow-purple" style="top:0;right:0;width:350px;height:350px"></div>
+
+  <div class="slide-content">
+    <div class="section-label">06 · Intelligence Modules</div>
+    <div class="slide-title">Criminal <span class="gradient-text">Network Analysis</span><br/>& Crime Hotspot Detection</div>
+    <div class="divider"></div>
+
+    <div class="two-col" style="margin-top:24px;flex:1">
+      <div>
+        <div class="card" style="height:100%">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <span style="font-size:24px">🕸️</span>
+            <div>
+              <div style="font-size:15px;font-weight:700;color:var(--text)">Criminal Network Graph</div>
+              <div style="font-size:11px;color:var(--muted)">D3.js v7 Force-Directed Visualization</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--sub);line-height:1.8;margin-bottom:14px">
+            Interactive force-directed graph maps the relationships between accused persons, co-accused, victims, vehicles, phone numbers, and locations — all extracted from SCRB FIRs.
+          </div>
+          <div style="font-size:11px;margin-bottom:6px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Node Types</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <span class="pill pill-blue">👤 Accused</span>
+            <span class="pill pill-orange">🚗 Vehicle</span>
+            <span class="pill pill-purple">📱 Phone</span>
+            <span class="pill pill-green">📍 Location</span>
+          </div>
+          <div style="font-size:11px;margin:10px 0 6px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Edge Types</div>
+          <div style="font-size:12px;color:var(--sub);line-height:1.8">
+            co-accused · CDR-link · vehicle-match · witness-corroboration
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="height:100%">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <span style="font-size:24px">🔥</span>
+            <div>
+              <div style="font-size:15px;font-weight:700;color:var(--text)">Crime Hotspot Map</div>
+              <div style="font-size:11px;color:var(--muted)">Leaflet.js + leaflet.heat over Bengaluru Urban</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--sub);line-height:1.8;margin-bottom:14px">
+            Real-time crime heatmap overlaid on Bengaluru Urban district. Automatically identifies high-intensity clusters and generates patrol zone recommendations for specific beats.
+          </div>
+          <div style="font-size:11px;margin-bottom:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Identified High-Risk Zones</div>
+          <div class="prog-row">
+            <div class="prog-label"><span>Jayanagar 4th Block</span><span>87%</span></div>
+            <div class="prog-bar"><div class="prog-fill" style="width:87%;background:linear-gradient(90deg,#f25c5c,#f5a623)"></div></div>
+          </div>
+          <div class="prog-row">
+            <div class="prog-label"><span>JP Nagar 6th Phase</span><span>74%</span></div>
+            <div class="prog-bar"><div class="prog-fill" style="width:74%"></div></div>
+          </div>
+          <div class="prog-row">
+            <div class="prog-label"><span>Yelahanka Ring Road</span><span>61%</span></div>
+            <div class="prog-bar"><div class="prog-fill" style="width:61%"></div></div>
+          </div>
+          <div class="prog-row">
+            <div class="prog-label"><span>KR Puram Junction</span><span>53%</span></div>
+            <div class="prog-bar"><div class="prog-fill" style="width:53%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">07 / 15</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 08 — PREDICTIVE FORECAST & AUDIT
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide bg-blue" id="slide-8">
+  <div class="grid-overlay"></div>
+
+  <div class="slide-content">
+    <div class="section-label">07 · Intelligence Modules Continued</div>
+    <div class="slide-title">Predictive <span class="gradient-text">Crime Forecasting</span><br/>& Statutory Audit Trail</div>
+    <div class="divider"></div>
+
+    <div class="two-col" style="margin-top:24px;flex:1">
+      <div>
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <span style="font-size:24px">📈</span>
+            <div style="font-size:15px;font-weight:700;color:var(--text)">30-Day Crime Forecast</div>
+          </div>
+          <div style="font-size:12px;color:var(--sub);line-height:1.8;margin-bottom:14px">
+            Chart.js powered predictive model with upper/lower confidence interval bands. Generates beat-level patrol signals and day-of-week crime concentration heatmaps.
+          </div>
+          <div style="background:rgba(4,8,20,.6);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6effc2">
+            Forecast: Week 1 ↑14% (Chain snatching)<br/>
+            Peak: Tue-Thu · 6-9 PM window<br/>
+            Beat Alert: Jayanagar 4th Block<br/>
+            Confidence: 78% (Upper: +23 cases)
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <span class="pill pill-blue">📅 Day-of-Week Heatmap</span>
+            <span class="pill pill-orange">⏰ Time-of-Day Analysis</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <span style="font-size:24px">📋</span>
+            <div style="font-size:15px;font-weight:700;color:var(--text)">SHA-256 Audit Ledger</div>
+          </div>
+          <div style="font-size:12px;color:var(--sub);line-height:1.8;margin-bottom:14px">
+            Every single action on Drishti — login, query, FIR access, network lookup, export — is logged with a cryptographic SHA-256 hash seal in a tamper-evident audit trail.
+          </div>
+          <div style="background:rgba(4,8,20,.6);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#6effc2;line-height:1.8">
+            AL-9K2M · FIR_QUERY<br/>
+            User: Insp. Asha Patel (L1)<br/>
+            Query: FIR/2291/2026<br/>
+            Hash: e3b0c44298fc1c14...<br/>
+            ✅ DPDPA §6 Compliant
+          </div>
+          <div style="margin-top:12px">
+            <div class="prog-row">
+              <div class="prog-label"><span>Total Audit Events Logged</span><span>27 points</span></div>
+              <div class="prog-bar"><div class="prog-fill" style="width:100%"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">08 / 15</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 09 — RBAC & SECURITY
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide bg-dark" id="slide-9">
+  <div class="grid-overlay"></div>
+  <div class="glow glow-red" style="background:rgba(242,92,92,.08);top:-100px;left:50%;width:400px;height:400px"></div>
+
+  <div class="slide-content">
+    <div class="section-label">08 · Security & Access Control</div>
+    <div class="slide-title">4-Tier <span class="gradient-text">Role-Based Access</span><br/>Control (RBAC)</div>
+    <div class="divider"></div>
+
+    <div style="margin-top:20px;flex:1">
+      <table>
+        <thead>
+          <tr>
+            <th>Role</th>
+            <th>Designation</th>
+            <th>Clearance</th>
+            <th>Module Access</th>
+            <th>Data Visibility</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag tag-red">🛡️ Admin / DGP</span></td>
+            <td>Director General of Police, Karnataka</td>
+            <td><span style="color:#f25c5c;font-weight:700">LEVEL 5 — APEX</span></td>
+            <td>All modules + Admin panel</td>
+            <td>All records including suppressed identities</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-orange">⭐ SP</span></td>
+            <td>Superintendent of Police, Bengaluru Urban</td>
+            <td><span style="color:#f5a623;font-weight:700">LEVEL 4 — STRATEGIC</span></td>
+            <td>All modules + Audit export</td>
+            <td>District-level restricted records</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-blue">🔵 DSP</span></td>
+            <td>Deputy Superintendent of Police</td>
+            <td><span style="color:var(--blue-light);font-weight:700">LEVEL 3 — TACTICAL</span></td>
+            <td>Chat, Network, Hotspot, Trends, Export</td>
+            <td>Sub-division records</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-green">👮 Inspector</span></td>
+            <td>Police Inspector / SHO / Duty Officer</td>
+            <td><span style="color:var(--green);font-weight:700">LEVEL 2 — OPERATIONAL</span></td>
+            <td>FIR Filing, Chat, Hotspot, Trends</td>
+            <td>Own station FIRs only</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-purple">📊 Analyst</span></td>
+            <td>Crime Data Analyst / SCRB Staff</td>
+            <td><span style="color:var(--purple);font-weight:700">LEVEL 2 — ANALYTICAL</span></td>
+            <td>Dashboard, Network (read), Trends, Export</td>
+            <td>Anonymized aggregate data</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="g3" style="margin-top:20px;gap:12px">
+        <div class="quote-box">
+          <div style="font-size:12px;font-weight:700;color:var(--blue-light);margin-bottom:6px">🔒 DPDPA 2023</div>
+          <div style="font-size:11px;color:var(--sub)">Survivor/victim identity gated to DGP & SP level. All others see [SUPPRESSED]</div>
+        </div>
+        <div class="quote-box">
+          <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:6px">🔐 Session Security</div>
+          <div style="font-size:11px;color:var(--sub)">sessionStorage (auto-cleared on tab close). API keys in localStorage only</div>
+        </div>
+        <div class="quote-box">
+          <div style="font-size:12px;font-weight:700;color:var(--orange);margin-bottom:6px">📋 Zero Transit</div>
+          <div style="font-size:11px;color:var(--sub)">No data leaves the browser to any 3rd party. Gemini API key never proxied</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">09 / 15</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 10 — STATUTORY COMPLIANCE
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide bg-blue" id="slide-10">
+  <div class="grid-overlay"></div>
+  <div class="glow glow-green" style="background:rgba(34,201,122,.08);top:-50px;right:-50px;width:350px;height:350px"></div>
+
+  <div class="slide-content">
+    <div class="section-label">09 · Legal Compliance Framework</div>
+    <div class="slide-title">100% <span class="gradient-text">Statutory Compliant</span><br/>with Indian Law 2023</div>
+    <div class="divider"></div>
+
+    <div class="two-col" style="margin-top:20px;flex:1">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="comp-badge">
+          <div class="comp-check">✅</div>
+          <div>
+            <div class="comp-law">Bharatiya Nyaya Sanhita (BNS) 2023</div>
+            <div class="comp-desc">AI penal code suggestions mapped exclusively to BNS sections (replaces IPC). Charges auto-applied to e-FIR.</div>
+          </div>
+        </div>
+        <div class="comp-badge">
+          <div class="comp-check">✅</div>
+          <div>
+            <div class="comp-law">Bharatiya Nagarik Suraksha Sanhita (BNSS) 2023</div>
+            <div class="comp-desc">e-FIR workflow strictly follows BNSS §173 statutory registration procedure with sealed receipt.</div>
+          </div>
+        </div>
+        <div class="comp-badge">
+          <div class="comp-check">✅</div>
+          <div>
+            <div class="comp-law">Bharatiya Sakshya Adhiniyam (BSA) 2023</div>
+            <div class="comp-desc">Court dossier classifies all evidence by admissibility: Fact vs. Inference. Digital chain-of-custody maintained.</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="comp-badge">
+          <div class="comp-check">✅</div>
+          <div>
+            <div class="comp-law">Digital Personal Data Protection Act (DPDPA) 2023</div>
+            <div class="comp-desc">All PII access is role-gated. Survivor identity suppression toggle. Every data access event SHA-256 logged.</div>
+          </div>
+        </div>
+        <div class="comp-badge">
+          <div class="comp-check">✅</div>
+          <div>
+            <div class="comp-law">Protection of Children from Sexual Offences (POCSO)</div>
+            <div class="comp-desc">Minor victim/survivor identities are automatically flagged for suppression regardless of officer role.</div>
+          </div>
+        </div>
+        <div class="hl-box" style="margin-top:4px">
+          <div style="font-size:12px;font-weight:700;color:var(--blue-light);margin-bottom:8px">⚖️ Explainable AI (XAI) Principle</div>
+          <div style="font-size:12px;color:var(--sub);line-height:1.7">
+            Every AI output is explicitly classified:<br/>
+            <strong style="color:#6effc2">FACT</strong> — Verified SCRB source record<br/>
+            <strong style="color:#ffd580">INFERENCE</strong> — Algorithmic analytical link<br/>
+            <strong style="color:#d4b9ff">PREDICTION</strong> — Probabilistic forecast
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">10 / 15</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 11 — GEMINI AI INTEGRATION
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide bg-dark" id="slide-11">
+  <div class="grid-overlay"></div>
+  <div class="glow glow-blue" style="top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px"></div>
+
+  <div class="slide-content">
+    <div class="section-label">10 · AI Engine</div>
+    <div class="slide-title">Google <span class="gradient-text">Gemini 2.5 Flash</span><br/>Integration with SCRB RAG</div>
+    <div class="divider"></div>
+
+    <div class="two-col" style="margin-top:24px;flex:1;align-items:center">
+      <div>
+        <div class="arch-box" style="margin-bottom:16px">
+GEMINI PROMPT ARCHITECTURE:
+┌────────────────────────────────┐
+│  SYSTEM PROMPT:                │
+│  ├─ Officer: Asha Patel (L2)   │
+│  ├─ Role: Inspector            │
+│  ├─ Jurisdiction: BLR Urban    │
+│  ├─ SCRB RAG Context:          │
+│  │   FIR/2291/2026 (active)   │
+│  │   Hotspot zones (evening)  │
+│  │   BNS §304 §309 patterns   │
+│  └─ DPDPA Privacy Rules       │
+├────────────────────────────────┤
+│  USER TURN:                    │
+│  Officer query (text/voice)    │
+└────────────────────────────────┘
+         │
+         ▼
+  gemini-2.5-flash API
+         │
+         ▼
+  XAI-tagged response
+  (Fact / Inference / Prediction)</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="feat-row">
+          <div class="feat-icon">🏠</div>
+          <div>
+            <div class="feat-title">Offline-First Local Engine</div>
+            <div class="feat-desc">Works in air-gapped police networks without internet. Pre-loaded SCRB knowledge base. Zero latency.</div>
+          </div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon">⚡</div>
+          <div>
+            <div class="feat-title">One-Click Gemini Switch</div>
+            <div class="feat-desc">Officers switch from offline to Live Gemini AI from the chat topbar. API key stored locally only — never proxied.</div>
+          </div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon">🔗</div>
+          <div>
+            <div class="feat-title">SCRB RAG Context Injection</div>
+            <div class="feat-desc">Active FIR context, hotspot data, officer role, jurisdiction, DPDPA rules and language preference are injected into every Gemini prompt.</div>
+          </div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon">🛡️</div>
+          <div>
+            <div class="feat-title">Automatic Fallback</div>
+            <div class="feat-desc">If Gemini API fails or network is unavailable, Drishti automatically falls back to the Local Engine with no disruption to the officer.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">11 / 15</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 12 — IMPACT & KPIs
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide bg-blue" id="slide-12">
+  <div class="grid-overlay"></div>
+  <div class="glow glow-green" style="background:rgba(34,201,122,.1);bottom:0;right:0"></div>
+
+  <div class="slide-content">
+    <div class="section-label">11 · Impact & Coverage</div>
+    <div class="slide-title">Platform <span class="gradient-text">Scale & Impact</span><br/>for Karnataka Police</div>
+    <div class="divider"></div>
+
+    <div class="g4" style="margin-top:24px">
+      <div class="stat-box">
+        <div class="stat-val">1,100+</div>
+        <div class="stat-lbl">Police Stations Covered</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val">30</div>
+        <div class="stat-lbl">Karnataka Districts</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val">3</div>
+        <div class="stat-lbl">Languages (EN/KN/HI)</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val">9</div>
+        <div class="stat-lbl">Intelligence Modules</div>
+      </div>
+    </div>
+
+    <div class="g3" style="margin-top:20px;flex:1;gap:16px">
+      <div class="card">
+        <div style="font-size:20px;margin-bottom:10px">⚡</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">FIR Filing Speed</div>
+        <div style="font-size:28px;font-weight:900;color:var(--green)">70%</div>
+        <div style="font-size:12px;color:var(--sub);margin-top:4px">Faster than manual FIR drafting with AI charge suggestion</div>
+      </div>
+      <div class="card">
+        <div style="font-size:20px;margin-bottom:10px">🔴</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">Syndicate Detection</div>
+        <div style="font-size:28px;font-weight:900;color:var(--orange)">Real-Time</div>
+        <div style="font-size:12px;color:var(--sub);margin-top:4px">Cross-case matching on accused/vehicle entry — instant alert</div>
+      </div>
+      <div class="card">
+        <div style="font-size:20px;margin-bottom:10px">📈</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">Patrol Efficiency</div>
+        <div style="font-size:28px;font-weight:900;color:var(--blue-light)">Data-Driven</div>
+        <div style="font-size:12px;color:var(--sub);margin-top:4px">30-day AI forecast replaces reactive intuition-based patrolling</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">12 / 15</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 13 — TECH STACK
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide bg-dark" id="slide-13">
+  <div class="grid-overlay"></div>
+
+  <div class="slide-content">
+    <div class="section-label">12 · Technology Stack</div>
+    <div class="slide-title">Built with <span class="gradient-text">Modern</span><br/>Open Web Standards</div>
+    <div class="divider"></div>
+
+    <div class="two-col" style="margin-top:24px;flex:1">
+      <div>
+        <table>
+          <thead><tr><th>Layer</th><th>Technology</th><th>Version</th></tr></thead>
+          <tbody>
+            <tr><td>UI Structure</td><td>HTML5 Semantic</td><td>Standard</td></tr>
+            <tr><td>Styling</td><td>Vanilla CSS (Custom Properties)</td><td>CSS3</td></tr>
+            <tr><td>Logic</td><td>Vanilla JavaScript (ES6+)</td><td>ES2023</td></tr>
+            <tr><td>Charts</td><td>Chart.js (CDN)</td><td>v4.4.0</td></tr>
+            <tr><td>Network Graph</td><td>D3.js (CDN)</td><td>v7.9.0</td></tr>
+            <tr><td>Maps</td><td>Leaflet.js (CDN)</td><td>v1.9.4</td></tr>
+            <tr><td>Heat Map</td><td>leaflet.heat (CDN)</td><td>v0.2.0</td></tr>
+            <tr><td>Voice ASR</td><td>Web Speech API</td><td>Native Browser</td></tr>
+            <tr><td>AI Engine</td><td>Google Gemini 2.5 Flash</td><td>v1beta API</td></tr>
+            <tr><td>Cryptography</td><td>SubtleCrypto (SHA-256)</td><td>Web Crypto API</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="hl-box">
+          <div style="font-size:13px;font-weight:700;color:var(--blue-light);margin-bottom:10px">🏆 Key Technical Decisions</div>
+          <div style="font-size:12px;color:var(--sub);line-height:1.9">
+            <strong style="color:var(--text)">No Framework</strong> — Pure Vanilla JS for maximum stability, zero dependency risk, and complete offline capability without npm/build tools.<br/><br/>
+            <strong style="color:var(--text)">CDN-Pinned Versions</strong> — All library versions are pinned (not @latest) to prevent unexpected breaking changes in a police-critical system.<br/><br/>
+            <strong style="color:var(--text)">Single Codebase</strong> — 9 HTML pages share 2 JS files and 5 CSS files. No duplication, fully maintainable by a small team.<br/><br/>
+            <strong style="color:var(--text)">Gemini API Direct</strong> — No backend proxy. API key stays in officer's browser localStorage only.
+          </div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <span class="pill pill-green">✅ Zero Backend</span>
+          <span class="pill pill-blue">✅ Offline-First</span>
+          <span class="pill pill-purple">✅ No npm/Node.js</span>
+          <span class="pill pill-orange">✅ Air-Gap Safe</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">13 / 15</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 14 — ROADMAP
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide bg-blue" id="slide-14">
+  <div class="grid-overlay"></div>
+  <div class="glow glow-purple" style="bottom:0;right:0;width:350px;height:350px"></div>
+
+  <div class="slide-content">
+    <div class="section-label">13 · Development Roadmap</div>
+    <div class="slide-title">What's <span class="gradient-text">Completed</span><br/>& Future Phases</div>
+    <div class="divider"></div>
+
+    <div class="two-col" style="margin-top:20px;flex:1">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">✅ Completed — v2.0</div>
+        <div class="timeline">
+          <div class="tl-item"><div class="tl-dot">1</div><div class="tl-body"><div class="tl-title">Core RBAC, Login, Dashboard, Design System</div></div></div>
+          <div class="tl-item"><div class="tl-dot">2</div><div class="tl-body"><div class="tl-title">Trilingual Chat Assistant + Voice ASR</div></div></div>
+          <div class="tl-item"><div class="tl-dot">3</div><div class="tl-body"><div class="tl-title">Criminal Network Graph (D3.js v7)</div></div></div>
+          <div class="tl-item"><div class="tl-dot">4</div><div class="tl-body"><div class="tl-title">Crime Hotspot Heatmap (Leaflet.js)</div></div></div>
+          <div class="tl-item"><div class="tl-dot">5</div><div class="tl-body"><div class="tl-title">Predictive Trends & Forecasting (Chart.js)</div></div></div>
+          <div class="tl-item"><div class="tl-dot">6</div><div class="tl-body"><div class="tl-title">DPDPA Statutory Audit Ledger (SHA-256)</div></div></div>
+          <div class="tl-item"><div class="tl-dot">7</div><div class="tl-body"><div class="tl-title">BSA 2023 Court-Ready Dossier Export</div></div></div>
+          <div class="tl-item"><div class="tl-dot">8</div><div class="tl-body"><div class="tl-title">AI-Assisted Statutory e-FIR Registration</div></div></div>
+          <div class="tl-item"><div class="tl-dot">9</div><div class="tl-body"><div class="tl-title">Live Google Gemini 2.5 Flash API Integration</div></div></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">🚀 Future Phases</div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-dot" style="background:rgba(245,166,35,.3);border:1px dashed var(--orange)">10</div>
+            <div class="tl-body"><div class="tl-title">Real SCRB MySQL / Neo4j Backend</div><div class="tl-desc">Connect to live FIR database for actual SCRB records</div></div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:rgba(245,166,35,.3);border:1px dashed var(--orange)">11</div>
+            <div class="tl-body"><div class="tl-title">JWT-based Production Authentication</div><div class="tl-desc">Replace session-based auth with secure token system</div></div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:rgba(245,166,35,.3);border:1px dashed var(--orange)">12</div>
+            <div class="tl-body"><div class="tl-title">CCTNS API Integration</div><div class="tl-desc">Crime and Criminal Tracking Network live data sync</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">14 / 15</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 15 — CLOSING / CTA
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide bg-hero" id="slide-15">
+  <div class="grid-overlay"></div>
+  <div class="glow glow-blue" style="top:-100px;left:-100px;width:600px;height:600px"></div>
+  <div class="glow glow-purple" style="bottom:-100px;right:-100px;width:500px;height:500px"></div>
+
+  <div class="slide-content" style="justify-content:center;align-items:center;text-align:center">
+    <div style="width:80px;height:80px;border-radius:24px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 24px">👁️</div>
+
+    <div class="hero-headline" style="font-size:clamp(36px,5vw,64px);margin-bottom:16px">
+      <span class="gradient-text">Drishti</span>
+    </div>
+    <div style="font-size:18px;color:var(--sub);margin-bottom:8px">दृष्टि · ದೃಷ್ಟಿ · Vision</div>
+    <div style="font-size:14px;color:var(--muted);margin-bottom:32px">Karnataka State Crime Records Bureau — Crime Intelligence Platform</div>
+
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:40px">
+      <span class="tag tag-green">✅ 9 Modules Complete</span>
+      <span class="tag tag-blue">🤖 Gemini AI Integrated</span>
+      <span class="tag tag-orange">⚖️ BNS / BNSS / BSA / DPDPA</span>
+      <span class="tag tag-purple">🌐 EN · ಕನ್ನಡ · हिंदी</span>
+    </div>
+
+    <div class="quote-box" style="max-width:600px;margin:0 auto 32px;text-align:left">
+      <div style="font-size:14px;color:var(--sub);line-height:1.8;font-style:italic">
+        "Drishti is not just a tool — it is Karnataka Police's transition from reactive crime response to proactive intelligence-led policing, fully compliant with India's 2023 statutory framework."
+      </div>
+    </div>
+
+    <div style="background:rgba(79,110,247,.1);border:1px solid rgba(79,110,247,.25);border-radius:14px;padding:20px 32px;display:inline-block">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em">Launch the Platform</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--blue-light)">
+        C:\Users\gaura\OneDrive\Desktop\project\ai\index.html
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">15 / 15</div>
+</div>
+
+</div><!-- end slides-wrapper -->
+
+<!-- NAV CONTROLS -->
+<div class="nav-controls">
+  <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">←</button>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:6.67%"></div></div>
+  <div class="slide-counter" id="slide-counter">1 / 15</div>
+  <button class="nav-btn" id="next-btn" onclick="navigate(1)">→</button>
+  <button class="nav-btn" title="Fullscreen" onclick="toggleFullscreen()" style="font-size:13px">⛶</button>
+</div>
+
+<script>
+const TOTAL = 15;
+let current = 1;
+
+function navigate(dir) {
+  const prev = current;
+  current = Math.max(1, Math.min(TOTAL, current + dir));
+  if (current === prev) return;
+
+  const prevSlide = document.getElementById('slide-' + prev);
+  const nextSlide = document.getElementById('slide-' + current);
+
+  prevSlide.classList.remove('active');
+  prevSlide.classList.add(dir > 0 ? 'prev' : '');
+  setTimeout(() => prevSlide.classList.remove('prev'), 500);
+
+  nextSlide.style.transform = dir > 0 ? 'translateX(60px)' : 'translateX(-60px)';
+  requestAnimationFrame(() => {
+    nextSlide.classList.add('active');
+    nextSlide.style.transform = '';
+  });
+
+  document.getElementById('slide-counter').textContent = current + ' / ' + TOTAL;
+  document.getElementById('progress-fill').style.width = ((current / TOTAL) * 100) + '%';
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); navigate(1); }
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp') { e.preventDefault(); navigate(-1); }
+  if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+});
+
+let ts = 0;
+document.addEventListener('touchstart', (e) => { ts = e.touches[0].clientX; });
+document.addEventListener('touchend', (e) => {
+  const diff = ts - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 50) navigate(diff > 0 ? 1 : -1);
+});
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+}
+</script>
+</body>
+</html>
